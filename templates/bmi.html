@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}BMI Calculator - FlexGym{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div class="container">
+        <h1>BMI <span class="text-accent">Calculator</span></h1>
+        <p>Apni body fitness check karein - Free!</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="bmi-container">
+            <!-- Calculator Form -->
+            <div class="bmi-form-section glass-card">
+                <h2>🔍 Calculate Your BMI</h2>
+                <p>BMI = Body Mass Index. Ye batata hai aapka weight healthy hai ya nahi.</p>
+                
+                <form method="POST" action="{{ url_for('main.bmi') }}">
+                    <div class="form-group">
+                        <label for="weight">Weight (kg) *</label>
+                        <input type="number" id="weight" name="weight" step="0.1" min="1" max="500" 
+                               required placeholder="e.g., 70">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="height">Height (cm) *</label>
+                        <input type="number" id="height" name="height" step="0.1" min="50" max="300" 
+                               required placeholder="e.g., 175">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-full">Calculate BMI</button>
+                </form>
+            </div>
+            
+            <!-- Result Section -->
+            <div class="bmi-result-section glass-card">
+                {% if result %}
+                <h2>📊 Aapka Result</h2>
+                <div class="bmi-result">
+                    <div class="bmi-value">{{ result.bmi }}</div>
+                    <div class="bmi-category">{{ result.category }}</div>
+                    <p class="bmi-advice">{{ result.advice }}</p>
+                    
+                    <div class="bmi-details">
+                        <p>⚖️ Weight: <strong>{{ result.weight }} kg</strong></p>
+                        <p>📏 Height: <strong>{{ result.height }} cm</strong></p>
+                    </div>
+                </div>
+                
+                <!-- BMI Scale -->
+                <div class="bmi-scale">
+                    <div class="scale-bar">
+                        <div class="scale-segment underweight" title="Underweight (<18.5)"></div>
+                        <div class="scale-segment normal" title="Normal (18.5-24.9)"></div>
+                        <div class="scale-segment overweight" title="Overweight (25-29.9)"></div>
+                        <div class="scale-segment obese" title="Obese (30+)"></div>
+                    </div>
+                    <div class="scale-labels">
+                        <span>Under</span>
+                        <span>Normal</span>
+                        <span>Over</span>
+                        <span>Obese</span>
+                    </div>
+                </div>
+                
+                <a href="{{ url_for('main.membership') }}" class="btn btn-primary btn-full">
+                    💪 Aapke Liye Best Plan Dekhein
+                </a>
+                {% else %}
+                <div class="bmi-empty">
+                    <span class="bmi-empty-icon">📋</span>
+                    <h2>Result Yahan Dikhega</h2>
+                    <p>BMI calculate karne ke liye form bharo</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- BMI Info -->
+        <div class="bmi-info-section">
+            <h3>BMI Categories Kya Hote Hain?</h3>
+            <div class="bmi-categories">
+                <div class="bmi-cat glass-card">
+                    <span class="cat-color underweight"></span>
+                    <strong>Underweight</strong>
+                    <span>BMI &lt; 18.5</span>
+                </div>
+                <div class="bmi-cat glass-card">
+                    <span class="cat-color normal"></span>
+                    <strong>Normal</strong>
+                    <span>BMI 18.5 - 24.9</span>
+                </div>
+                <div class="bmi-cat glass-card">
+                    <span class="cat-color overweight"></span>
+                    <strong>Overweight</strong>
+                    <span>BMI 25 - 29.9</span>
+                </div>
+                <div class="bmi-cat glass-card">
+                    <span class="cat-color obese"></span>
+                    <strong>Obese</strong>
+                    <span>BMI &ge; 30</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

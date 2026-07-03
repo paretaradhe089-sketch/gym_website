@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Gallery - FlexGym{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div class="container">
+        <h1>Our <span class="text-accent">Gallery</span></h1>
+        <p>Humari world-class facilities ka dekho</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="gallery-grid">
+            {% for image in images %}
+            <div class="gallery-item glass-card" onclick="openImage('{{ image }}')">
+                <img src="{{ image }}" alt="Gallery Image {{ loop.index }}" loading="lazy">
+                <div class="gallery-overlay">
+                    <span class="zoom-icon">🔍</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Image Modal -->
+<div class="image-modal" id="imageModal" onclick="closeImage()">
+    <span class="modal-close" onclick="closeImage()">&times;</span>
+    <img src="" id="modalImage" alt="Full Image">
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openImage(src) {
+    document.getElementById('modalImage').src = src;
+    document.getElementById('imageModal').style.display = 'flex';
+}
+function closeImage() {
+    document.getElementById('imageModal').style.display = 'none';
+}
+</script>
+{% endblock %}

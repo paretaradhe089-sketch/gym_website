@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us - FlexGym{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1>About <span class="text-accent">FlexGym</span></h1>
+        <p>Hum aapki fitness journey ke saath 14+ saal se hain</p>
+    </div>
+</section>
+
+<!-- About Main -->
+<section class="section">
+    <div class="container">
+        <div class="about-grid">
+            <div class="about-image">
+                <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600" 
+                     alt="Gym Interior" loading="lazy">
+            </div>
+            <div class="about-content">
+                <span class="section-tag">OUR STORY</span>
+                <h2>India Ka Sabse Trusted Gym</h2>
+                <p>
+                    2010 mein Mumbai mein ek chote se room se shuru kiya gaya FlexGym aaj
+                    India ke top 10 fitness clubs mein se ek hai. Humara mission hai har
+                    Indian ko fit aur healthy banana.
+                </p>
+                <p>
+                    Humari team 25+ certified trainers ki hai jo aapko personal attention dete hain.
+                    Modern equipment, clean environment, aur friendly atmosphere - ye humari pehchaan hai.
+                </p>
+                
+                <div class="about-features">
+                    <div class="about-feature">
+                        <span class="check-icon">✓</span>
+                        <span>Certified & Experienced Trainers</span>
+                    </div>
+                    <div class="about-feature">
+                        <span class="check-icon">✓</span>
+                        <span>State-of-the-art Equipment</span>
+                    </div>
+                    <div class="about-feature">
+                        <span class="check-icon">✓</span>
+                        <span>Personalized Workout Plans</span>
+                    </div>
+                    <div class="about-feature">
+                        <span class="check-icon">✓</span>
+                        <span>Clean & Hygienic Environment</span>
+                    </div>
+                </div>
+                
+                <a href="{{ url_for('main.contact') }}" class="btn btn-primary">Contact Us</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mission Vision -->
+<section class="section mission-section">
+    <div class="container">
+        <div class="mission-grid">
+            <div class="mission-card glass-card">
+                <div class="mission-icon">🎯</div>
+                <h3>Our Mission</h3>
+                <p>Har Indian ko fitness se jodna aur healthy lifestyle promote karna.</p>
+            </div>
+            <div class="mission-card glass-card">
+                <div class="mission-icon">👁️</div>
+                <h3>Our Vision</h3>
+                <p>India ko world ka sabse fit banana aur fitness ko sabke liye accessible rakhna.</p>
+            </div>
+            <div class="mission-card glass-card">
+                <div class="mission-icon">💎</div>
+                <h3>Our Values</h3>
+                <p>Discipline, Dedication, aur Determination - ye humari 3 pillars hain.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="section stats-section">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-box glass-card">
+                <h3>10,000+</h3>
+                <p>Happy Members</p>
+            </div>
+            <div class="stat-box glass-card">
+                <h3>25+</h3>
+                <p>Expert Trainers</p>
+            </div>
+            <div class="stat-box glass-card">
+                <h3>14+</h3>
+                <p>Years Experience</p>
+            </div>
+            <div class="stat-box glass-card">
+                <h3>50+</h3>
+                <p>Weekly Classes</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

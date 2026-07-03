@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Testimonials - FlexGym{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div class="container">
+        <h1>Member <span class="text-accent">Reviews</span></h1>
+        <p>Hamare members ki kahaniyan suniye</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="testimonials-grid">
+            {% for t in testimonials %}
+            <div class="testimonial-card glass-card">
+                <div class="testimonial-header">
+                    <img src="{{ t.img }}" alt="{{ t.name }}" class="testimonial-avatar" loading="lazy">
+                    <div>
+                        <h3>{{ t.name }}</h3>
+                        <p class="testimonial-role">{{ t.role }}</p>
+                    </div>
+                </div>
+                <div class="testimonial-rating">
+                    {% for i in range(t.rating) %}⭐{% endfor %}
+                </div>
+                <p class="testimonial-msg">"{{ t.msg }}"</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

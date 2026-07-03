@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - FlexGym{% endblock %}
+
+{% block content %}
+
+<section class="auth-section">
+    <div class="auth-container glass-card">
+        <div class="auth-header">
+            <h1>Welcome Back! 👋</h1>
+            <p>Aapke account mein login karein</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('auth.login') }}" class="auth-form">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="email@example.com" value="{{ request.form.email }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-field">
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Aapka password">
+                    <button type="button" class="toggle-password" onclick="togglePassword('password', this)">👁️</button>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-full">Login 🔓</button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Account nahi hai? <a href="{{ url_for('auth.register') }}">Register karein</a></p>
+        </div>
+    </div>
+</section>
+
+<script>
+function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+    } else {
+        input.type = 'password';
+        btn.textContent = '👁️';
+    }
+}
+</script>
+
+{% endblock %}

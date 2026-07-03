@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}404 - Page Not Found{% endblock %}
+
+{% block content %}
+<section class="error-section">
+    <div class="error-container glass-card">
+        <h1 class="error-code">404</h1>
+        <h2>Page Nahi Mila! 😅</h2>
+        <p>Jo page aap dhund rahe ho wo exist nahi karta.</p>
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">🏠 Home Par Jaayein</a>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Services - Spartan Fitness Zone{% endblock %}
+
+{% block content %}
+<section class="page-header"><h1>Our <span class="text-red">Services</span></h1></section>
+
+<section class="section">
+    <div class="services-grid">
+        {% for s in services %}
+        <div class="glass-card service-card">
+            <div class="icon">{{ s.icon }}</div>
+            <h3>{{ s.title }}</h3>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

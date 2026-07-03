@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Spartan Fitness Zone - Join Now{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <!-- Top Logo & Name -->
+    <div class="header-section">
+        <!-- Yahan aapki image lag gayi hai -->
+        <img src="https://z-cdn-media.chatglm.cn/files/2ebf8818-e70d-4ebe-90a8-10eb66d08a32.png?auth_key=1883062089-c510b5614b37434a90fc89e6f7b0cafa-0-fba69131e6e34235f7963a6ee1b55c19" alt="SFZ Logo">
+        <h1>Spartan Fitness Zone</h1>
+        <p>STRONG BODY • STRONG MIND • SPARTAN SPIRIT</p>
+    </div>
+
+    <!-- Grid: Left (Info & Fees) | Right (Registration Form) -->
+    <div class="content-grid">
+        
+        <!-- Left Column -->
+        <div>
+            <div class="glass-card">
+                <h2>💰 Fee Structure</h2>
+                <div class="fee-list">
+                    <div class="fee-item"><span>Monthly</span> <span class="price">₹1200</span></div>
+                    <div class="fee-item"><span>Quarterly</span> <span class="price">₹3000</span></div>
+                    <div class="fee-item"><span>6 Months</span> <span class="price">₹5000</span></div>
+                    <div class="fee-item"><span>Yearly</span> <span class="price">₹8000</span></div>
+                </div>
+                
+                <div class="info-box">
+                    <h3>📍 Location</h3>
+                    <p>Hawa Sadak Rd, Hawa Sadak, Nandpuri Colony, Ramnagar, Jaipur, Rajasthan 302019</p>
+                    <h3>📞 Contact</h3>
+                    <p>84400 88706</p>
+                    <h3>🕐 Opening Hours</h3>
+                    <p>Mon - Sat: 5–10 am, 4–10 pm</p>
+                    <p>Sunday: Closed</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column (Form) -->
+        <div class="glass-card">
+            <h2>📝 Registration Form</h2>
+            <form method="POST" action="{{ url_for('main.register_user') }}">
+                <input type="text" name="name" placeholder="Full Name *" required>
+                <input type="text" name="phone" placeholder="Phone Number *" required pattern="[0-9]{10}">
+                <input type="text" name="address" placeholder="Address">
+                
+                <select name="plan">
+                    <option value="Monthly">Monthly (₹1200)</option>
+                    <option value="Quarterly">Quarterly (₹3000)</option>
+                    <option value="6 months">6 Months (₹5000)</option>
+                    <option value="Yearly">Yearly (₹8000)</option>
+                </select>
+
+                <div class="payment-option">
+                    <label><input type="radio" name="payment_method" value="Cash" checked> Cash</label>
+                    <label><input type="radio" name="payment_method" value="Online" id="online-radio"> Online</label>
+                </div>
+
+                <div id="qr-code-box" style="display:none; text-align:center; margin:15px 0;">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=spartan@upi&pn=SFZ" alt="UPI QR Code" style="border-radius:10px;">
+                    <p>Scan & Pay</p>
+                </div>
+
+                <button type="submit" class="btn-primary">Register Now</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const onlineRadio = document.getElementById('online-radio');
+    const qrBox = document.getElementById('qr-code-box');
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if(this.value === 'Online') { qrBox.style.display = 'block'; } 
+            else { qrBox.style.display = 'none'; }
+        });
+    });
+</script>
+{% endblock %}

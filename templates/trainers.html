@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Trainers - FlexGym{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div class="container">
+        <h1>Our <span class="text-accent">Trainers</span></h1>
+        <p>India ke best certified trainers se seekhein</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="trainers-grid">
+            {% for trainer in trainers %}
+            <div class="trainer-card glass-card">
+                <div class="trainer-image">
+                    <img src="{{ trainer.img }}" alt="{{ trainer.name }}" loading="lazy">
+                    <div class="trainer-overlay">
+                        <div class="trainer-social">
+                            <a href="#">📘</a>
+                            <a href="#">📷</a>
+                            <a href="#">🐦</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="trainer-info">
+                    <h3>{{ trainer.name }}</h3>
+                    <p class="trainer-role">{{ trainer.role }}</p>
+                    <p class="trainer-exp">⏱ {{ trainer.exp }}</p>
+                    <p class="trainer-spec">🎯 {{ trainer.spec }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

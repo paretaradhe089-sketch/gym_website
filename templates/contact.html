@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Contact - Spartan Fitness Zone{% endblock %}
+
+{% block content %}
+<section class="page-header"><h1>Contact <span class="text-red">Us</span></h1></section>
+
+<section class="section">
+    <div class="contact-grid">
+        <div class="glass-card">
+            <h3 style="color:var(--red); margin-bottom:15px;">Visit Us</h3>
+            <p>📍 Hawa Sadak Rd, Jaipur, Rajasthan 302019</p>
+            <p>📞 84400 88706</p>
+            <p>🕐 Mon-Sat: 5-10am, 4-10pm</p>
+        </div>
+        <div class="glass-card">
+            <form method="POST" action="{{ url_for('main.contact') }}">
+                <h3 style="color:var(--red); margin-bottom:15px;">Send Feedback</h3>
+                <input type="text" name="name" placeholder="Your Name" required>
+                <input type="email" name="email" placeholder="Email (Optional)">
+                <textarea name="message" placeholder="Your Message" required rows="4"></textarea>
+                <button type="submit" class="btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

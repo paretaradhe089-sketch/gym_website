@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Membership Plans - FlexGym{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div class="container">
+        <h1>Membership <span class="text-accent">Plans</span></h1>
+        <p>Aapki budget aur goal ke hisaab se best plan chunein</p>
+    </div>
+</section>
+
+{% if plans %}
+<section class="section">
+    <div class="container">
+        <div class="pricing-grid">
+            {% for plan in plans %}
+            <div class="pricing-card glass-card {% if plan.popular %}popular{% endif %}">
+                {% if plan.popular %}
+                <div class="popular-badge">⭐ MOST POPULAR</div>
+                {% endif %}
+                <h3 class="plan-name">{{ plan.name }}</h3>
+                <div class="plan-price">
+                    <span class="currency">₹</span>
+                    <span class="amount">{{ plan.price }}</span>
+                    <span class="period">/{{ plan.period }}</span>
+                </div>
+                <ul class="plan-features">
+                    {% for feature in plan.features %}
+                    <li><span class="check-icon">✓</span> {{ feature }}</li>
+                    {% endfor %}
+                </ul>
+                <a href="{{ url_for('main.join_plan', plan_name=plan.name) }}" class="btn {% if plan.popular %}btn-primary{% else %}btn-outline{% endif %} btn-full">
+                    Choose {{ plan.name }}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <p class="pricing-note">
+            💡 Sabhi plans mein 7-day free trial available hai. GST extra.
+        </p>
+    </div>
+</section>
+{% else %}
+
+<!-- Join Plan Form -->
+<section class="section">
+    <div class="container">
+        <div class="form-container glass-card">
+            <h2>Join {{ join_plan }} Plan 🎉</h2>
+            <p>Apni details bharein, hum aapko call karenge</p>
+            
+            <form method="POST" action="{{ url_for('main.join_plan', plan_name=join_plan) }}">
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" required placeholder="Aapka naam">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required placeholder="email@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="9876543210" pattern="[0-9]{10}">
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">Confirm Membership</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+{% endif %}
+
+{% endblock %}
