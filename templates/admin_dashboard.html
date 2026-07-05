@@ -84,11 +84,15 @@
                     return;
                 }
                 data.forEach(u => {
+                    // Yahan Call Button add kiya gaya hai
                     tableBody.innerHTML += `
                         <tr>
                             <form method="POST" action="/admin/edit/${u.id}">
                                 <td><input type="text" name="name" value="${u.name}" style="background:transparent; border:none; color:#fff; width:100px;"></td>
-                                <td><input type="text" name="phone" value="${u.phone}" style="background:transparent; border:none; color:#fff; width:100px;"></td>
+                                <td style="white-space: nowrap;">
+                                    <input type="text" name="phone" value="${u.phone}" style="background:transparent; border:none; color:#fff; width:80px; display:inline-block;">
+                                    <a href="tel:${u.phone}" class="btn-sm btn-edit" style="padding: 5px 8px; margin-left: 5px; text-decoration:none;">📞 Call</a>
+                                </td>
                                 <td>${u.gender}</td>
                                 <td>${u.batch}</td>
                                 <td>${u.plan}</td>
