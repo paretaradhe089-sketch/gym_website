@@ -18,26 +18,15 @@
 </div>
 
 <div class="section">
+    <!-- Notification card removed, Total users added -->
     <div class="stats-grid">
         <div class="stat-card"><h3>₹{{ total_payment }}</h3><p>Monthly Payment</p></div>
         <div class="stat-card"><h3>{{ pending_users }}</h3><p>Pending Users</p></div>
         <div class="stat-card"><h3>{{ active_users }}</h3><p>Active Users</p></div>
-        <div class="stat-card"><h3>{{ notifications|length }}</h3><p>New Alerts</p></div>
+        <div class="stat-card"><h3>{{ total_users }}</h3><p>Total Members</p></div>
     </div>
 
-    <div class="admin-card">
-        <h2>🔔 Alert Notifications</h2>
-        {% if notifications %}
-            {% for n in notifications %}
-            <div class="notif-box">
-                <span>{{ n.message }} <small style="color:#888;">({{ n.created_at.strftime('%d %b, %I:%M %p') }})</small></span>
-                <a href="{{ url_for('admin.delete_notification', notif_id=n._id) }}" class="btn-sm btn-del">Clear</a>
-            </div>
-            {% endfor %}
-        {% else %}
-            <p style="color:#888;">No new notifications.</p>
-        {% endif %}
-    </div>
+    <!-- Alert Notifications Section Removed Completely -->
 
     <div class="admin-card">
         <h2>👥 All Members (Live Search)</h2>
@@ -47,7 +36,7 @@
 
         <table>
             <thead>
-                <tr><th>Name</th><th>Phone</th><th>Gender</th><th>Batch</th><th>Plan</th><th>Amount</th><th>Pay Status</th><th>Expiry</th><th>Actions</th></tr>
+                <tr><th>Name</th><th>Phone</th><th>Gender</th><th>Batch</th><th>Plan</th><th>Join Date</th><th>Amount</th><th>Status</th><th>Actions</th></tr>
             </thead>
             <tbody id="userTableBody"></tbody>
         </table>
@@ -84,7 +73,6 @@
                     return;
                 }
                 data.forEach(u => {
-                    // Yahan Call Button add kiya gaya hai
                     tableBody.innerHTML += `
                         <tr>
                             <form method="POST" action="/admin/edit/${u.id}">
@@ -96,6 +84,7 @@
                                 <td>${u.gender}</td>
                                 <td>${u.batch}</td>
                                 <td>${u.plan}</td>
+                                <td>${u.join_date}</td>
                                 <td>₹${u.amount}</td>
                                 <td>
                                     <select name="status" style="background:#111; color:#fff; border:1px solid #333; padding:5px;">
@@ -103,7 +92,6 @@
                                         <option ${u.status === 'Pending' ? 'selected' : ''}>Pending</option>
                                     </select>
                                 </td>
-                                <td>${u.expiry}</td>
                                 <td style="display:flex; gap:5px;">
                                     <button type="submit" class="btn-sm btn-edit">Save</button>
                                     <a href="/download_receipt/${u.id}" class="btn-sm btn-edit" target="_blank">PDF</a>
