@@ -1,5 +1,4 @@
-# routes/admin.py
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from models.database import get_db
 from config import ADMIN_PASSWORD
 from datetime import datetime, timedelta
@@ -33,25 +32,13 @@ def admin_logout():
 def check_expiry_notifications(db):
     today = datetime.now()
     three_days_later = today + timedelta(days=3)
-    
-    active_users = db.users.find({'status': 'Active'})
-    for user in active_users:
+    for user in db.users.find({'status': 'Active'}):
         expiry = user.get('expiry_date')
-        if not expiry: continue
-        
-        if today <= expiry <= three_days_later:
-            existing_notif = db.notifications.find_one({
-                'user_phone': user['phone'],
-                'type': 'Expiry',
-                'is_read': False
-            })
-            if not existing_notif:
+        if expiry and today <= expiry <= three_days_later:
+            if not db.notifications.find_one({'user_phone': user['phone'], 'type': 'Expiry', 'is_read': False}):
                 db.notifications.insert_one({
-                    'type': 'Expiry',
-                    'message': f"⚠️ {user['name']} ka plan {expiry.strftime('%d %b')} ko expire ho raha hai!",
-                    'user_phone': user['phone'],
-                    'created_at': datetime.now(),
-                    'is_read': False
+                    'type': 'Expiry', 'message': f"⚠️ {user['name']} ka plan {expiry.strftime('%d %b')} ko expire ho raha hai!",
+                    'user_phone': user['phone'], 'created_at': datetime.now(), 'is_read': False
                 })
 
 @admin_bp.route('/admin/dashboard')
@@ -59,42 +46,42 @@ def check_expiry_notifications(db):
 def dashboard():
     db = get_db()
     check_expiry_notifications(db)
-    
     active_users = db.users.count_documents({'status': 'Active'})
     pending_users = db.users.count_documents({'status': 'Pending'})
-    
     current_month = datetime.now().month
     current_year = datetime.now().year
-    monthly_payments_cursor = db.users.find({
-        'join_date': {'$gte': datetime(current_year, current_month, 1)},
-        'payment_method': 'Cash'
-    })
-    total_payment = sum(u.get('amount', 0) for u in monthly_payments_cursor)
+    total_payment = sum(u.get('amount', 0) for u in db.users.find({'join_date': {'$gte': datetime(current_year, current_month, 1)}, 'payment_method': 'Cash'}))
     
-    search_query = request.args.get('search', '')
-    if search_query:
-        users = list(db.users.find({'phone': {'$regex': search_query}}).sort('join_date', -1))
-    else:
-        users = list(db.users.find().sort('join_date', -1))
-        
+    users = list(db.users.find().sort('join_date', -1))
     notifications = list(db.notifications.find({'is_read': False}).sort('created_at', -1))
     feedbacks = list(db.feedback.find().sort('created_at', -1))
 
-    return render_template('admin_dashboard.html', 
-                           active_users=active_users, pending_users=pending_users,
-                           total_payment=total_payment, users=users, 
-                           notifications=notifications, feedbacks=feedbacks,
-                           search_query=search_query)
+    return render_template('admin_dashboard.html', active_users=active_users, pending_users=pending_users, total_payment=total_payment, users=users, notifications=notifications, feedbacks=feedbacks)
+
+@admin_bp.route('/admin/search_api')
+@admin_required
+def search_api():
+    db = get_db()
+    q = request.args.get('q', '')
+    users = list(db.users.find({'phone': {'$regex': q, '$options': 'i'}})) if q else list(db.users.find().sort('join_date', -1))
+    result = []
+    for u in users:
+        result.append({
+            'id': str(u['_id']), 'name': u.get('name', ''), 'phone': u.get('phone', ''),
+            'gender': u.get('gender', ''), 'batch': u.get('batch', ''), 'plan': u.get('plan', ''),
+            'amount': u.get('amount', 0), 'payment_method': u.get('payment_method', ''),
+            'status': u.get('status', ''),
+            'expiry': u.get('expiry_date').strftime('%d %b %y') if u.get('expiry_date') else ''
+        })
+    return jsonify(result)
 
 @admin_bp.route('/admin/edit/<user_id>', methods=['POST'])
 @admin_required
 def edit_user(user_id):
     db = get_db()
     db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {
-        'name': request.form.get('name'),
-        'phone': request.form.get('phone'),
-        'address': request.form.get('address'),
-        'status': request.form.get('status')
+        'name': request.form.get('name'), 'phone': request.form.get('phone'),
+        'address': request.form.get('address'), 'status': request.form.get('status')
     }})
     flash('✅ User updated!', 'success')
     return redirect(url_for('admin.dashboard'))
