@@ -81,7 +81,7 @@ def register_user():
         
         if email: send_welcome_email(email, name)
         
-        # Sirf New User Notification generate hoga
+        # Sirf Naye User ki notification banegi
         db.notifications.insert_one({
             'type': 'New User', 'message': f'🆕 Naya User: {name} ({phone}) - Plan: {plan}',
             'user_phone': phone, 'created_at': datetime.now(), 'is_read': False
@@ -106,15 +106,13 @@ def download_receipt(user_id):
     pdf = FPDF()
     pdf.add_page()
     
-    # Black Background
     pdf.set_fill_color(17, 17, 17)
     pdf.rect(0, 0, 210, 297, 'F')
     
-    # Header
-    pdf.set_text_color(255, 212, 0) # Yellow
+    pdf.set_text_color(255, 212, 0)
     pdf.set_font("Arial", 'B', 28)
     pdf.cell(0, 15, "SFZ", 0, 1, 'C')
-    pdf.set_text_color(255, 255, 255) # White
+    pdf.set_text_color(255, 255, 255)
     pdf.set_font("Arial", 'B', 14)
     pdf.cell(0, 10, "Spartan Fitness Zone", 0, 1, 'C')
     pdf.set_text_color(150, 150, 150)
@@ -159,9 +157,9 @@ def download_receipt(user_id):
     
     return send_file(buffer, as_attachment=True, download_name=f"SFZ_Receipt_{user['name']}.pdf", mimetype='application/pdf')
 
-# Naye Services Yahan Hain
 @main_bp.route('/services')
 def services():
+    # Aapke naye 8 services
     services_list = [
         {'icon': '🏋️', 'title': 'Strength Training', 'desc': 'Build raw power and muscle mass with certified trainers.'},
         {'icon': '🥗', 'title': 'Nutritional Guidance', 'desc': 'Custom diet plans tailored to your body goals.'},
