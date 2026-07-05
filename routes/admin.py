@@ -29,25 +29,22 @@ def admin_logout():
     session.clear()
     return redirect(url_for('main.index'))
 
-# Expiry notification wala function yahan se hata diya gaya hai
-
 @admin_bp.route('/admin/dashboard')
 @admin_required
 def dashboard():
     db = get_db()
-    
-    # Stats get kar rahe hain
     active_users = db.users.count_documents({'status': 'Active'})
     pending_users = db.users.count_documents({'status': 'Pending'})
+    total_users = db.users.count_documents({})
     current_month = datetime.now().month
     current_year = datetime.now().year
     total_payment = sum(u.get('amount', 0) for u in db.users.find({'join_date': {'$gte': datetime(current_year, current_month, 1)}, 'payment_method': 'Cash'}))
     
     users = list(db.users.find().sort('join_date', -1))
-    notifications = list(db.notifications.find({'is_read': False}).sort('created_at', -1))
     feedbacks = list(db.feedback.find().sort('created_at', -1))
 
-    return render_template('admin_dashboard.html', active_users=active_users, pending_users=pending_users, total_payment=total_payment, users=users, notifications=notifications, feedbacks=feedbacks)
+    # Notifications variable nahi bhej rahe
+    return render_template('admin_dashboard.html', active_users=active_users, pending_users=pending_users, total_payment=total_payment, total_users=total_users, users=users, feedbacks=feedbacks)
 
 @admin_bp.route('/admin/search_api')
 @admin_required
@@ -62,7 +59,8 @@ def search_api():
             'gender': u.get('gender', ''), 'batch': u.get('batch', ''), 'plan': u.get('plan', ''),
             'amount': u.get('amount', 0), 'payment_method': u.get('payment_method', ''),
             'status': u.get('status', ''),
-            'expiry': u.get('expiry_date').strftime('%d %b %y') if u.get('expiry_date') else ''
+            'join_date': u.get('join_date').strftime('%d %b %y') if u.get('join_date') else 'N/A',
+            'expiry': u.get('expiry_date').strftime('%d %b %y') if u.get('expiry_date') else 'N/A'
         })
     return jsonify(result)
 
@@ -92,11 +90,3 @@ def delete_feedback(feedback_id):
     db.feedback.delete_one({'_id': ObjectId(feedback_id)})
     flash('🗑️ Feedback deleted!', 'success')
     return redirect(url_for('admin.dashboard') + '#feedbacks')
-
-@admin_bp.route('/admin/delete_notification/<notif_id>')
-@admin_required
-def delete_notification(notif_id):
-    db = get_db()
-    db.notifications.delete_one({'_id': ObjectId(notif_id)})
-    flash('✅ Notification cleared!', 'success')
-    return redirect(url_for('admin.dashboard'))
