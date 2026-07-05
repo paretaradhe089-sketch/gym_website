@@ -9,7 +9,11 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="{{ url_for('main.index') }}" class="logo-nav">🏋️ SPARTAN <span class="text-red">FITNESS ZONE</span></a>
+        <a href="{{ url_for('main.index') }}" class="logo-nav">
+            <!-- Naya SFZ Logo Yahan Hai -->
+            <img src="https://z-cdn-media.chatglm.cn/files/7151a762-b945-4edb-b87c-d197f1f4690c.jpeg?auth_key=1883246624-7c7f1940a0194663807b4d43f04d3e03-0-a99cbe2b5351de5a21595946949ca870" alt="SFZ Logo" class="nav-logo-img">
+            <span>SPARTAN FITNESS ZONE</span>
+        </a>
         <ul class="nav-menu">
             <li><a href="{{ url_for('main.index') }}">Home</a></li>
             <li><a href="{{ url_for('main.services') }}">Services</a></li>
