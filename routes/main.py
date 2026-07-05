@@ -52,17 +52,23 @@ def register_user():
         comment = request.form.get('comment', '').strip()
         plan = request.form.get('plan', 'Monthly')
         payment_method = request.form.get('payment_method', 'Cash')
+        join_date_str = request.form.get('join_date') # Naya Join Date field
         
         if not name or not phone:
             flash('⚠️ Naam aur Phone zaroori hai!', 'error')
             return redirect(url_for('main.index'))
         
+        # Agar join date nahi di toh aaj ki date le lo
+        try:
+            join_date = datetime.strptime(join_date_str, '%Y-%m-%d') if join_date_str else datetime.now()
+        except:
+            join_date = datetime.now()
+            
         db = get_db()
         if db.users.find_one({'phone': phone}):
             flash('⚠️ Ye phone number already registered hai!', 'error')
             return redirect(url_for('main.index'))
         
-        join_date = datetime.now()
         months_map = {'Monthly': 1, 'Quarterly': 3, '6 months': 6, 'Yearly': 12}
         amount_map = {'Monthly': 1200, 'Quarterly': 3000, '6 months': 5000, 'Yearly': 8000}
         amount = amount_map.get(plan, 1200)
@@ -73,7 +79,7 @@ def register_user():
             'payment_method': payment_method, 'amount': amount,
             'status': 'Active' if payment_method == 'Cash' else 'Pending',
             'join_date': join_date,
-            'expiry_date': add_months(join_date, months_map.get(plan, 1))
+            'expiry_date': add_months(join_date, months_map.get(plan, 1)) # Expiry ab form wali date se calculate hoga
         }
         
         result = db.users.insert_one(user_data)
@@ -81,18 +87,29 @@ def register_user():
         
         if email: send_welcome_email(email, name)
         
-        # Sirf Naye User ki notification banegi
-        db.notifications.insert_one({
-            'type': 'New User', 'message': f'🆕 Naya User: {name} ({phone}) - Plan: {plan}',
-            'user_phone': phone, 'created_at': datetime.now(), 'is_read': False
-        })
+        # Notification code bilkul hata diya gaya hai
         
         if payment_method == 'Online':
-            flash('✅ Registration Successful! Apna PDF receipt download karein.', 'success')
-            return redirect(url_for('main.download_receipt', user_id=reg_id))
+            return redirect(url_for('main.payment_success', user_id=reg_id))
         
         flash('✅ Registration Successful!', 'success')
         return redirect(url_for('main.index'))
+
+# Naya Route: Payment Success aur WhatsApp Receipt
+@main_bp.route('/payment_success/<user_id>')
+def payment_success(user_id):
+    db = get_db()
+    from bson import ObjectId
+    user = db.users.find_one({'_id': ObjectId(user_id)})
+    if not user:
+        return redirect(url_for('main.index'))
+    
+    # WhatsApp link generate karna
+    wa_number = config.ADMIN_WHATSAPP
+    wa_text = f"Hi Admin! I am {user['name']}. I have completed my online payment of ₹{user['amount']} for the {user['plan']} plan. My Registration ID is {str(user['_id'])[-8:]}. Please confirm."
+    wa_link = f"https://wa.me/{wa_number}?text={wa_text.replace(' ', '%20')}"
+    
+    return render_template('payment_success.html', user=user, wa_link=wa_link, reg_id=user_id)
 
 @main_bp.route('/download_receipt/<user_id>')
 def download_receipt(user_id):
@@ -105,7 +122,6 @@ def download_receipt(user_id):
 
     pdf = FPDF()
     pdf.add_page()
-    
     pdf.set_fill_color(17, 17, 17)
     pdf.rect(0, 0, 210, 297, 'F')
     
@@ -159,7 +175,6 @@ def download_receipt(user_id):
 
 @main_bp.route('/services')
 def services():
-    # Aapke naye 8 services
     services_list = [
         {'icon': '🏋️', 'title': 'Strength Training', 'desc': 'Build raw power and muscle mass with certified trainers.'},
         {'icon': '🥗', 'title': 'Nutritional Guidance', 'desc': 'Custom diet plans tailored to your body goals.'},
