@@ -51,6 +51,10 @@
                     </select>
                 </div>
                 
+                <!-- NAYA JOINING DATE FIELD -->
+                <label style="font-size:12px; color:var(--yellow); margin-bottom:5px; display:block;">Select Joining Date</label>
+                <input type="date" name="join_date" id="joinDate" required style="color-scheme: dark;">
+
                 <input type="text" name="address" placeholder="Address">
                 <textarea name="comment" placeholder="Comment / Medical Issue (Optional)" rows="2"></textarea>
                 
@@ -81,6 +85,12 @@
 </div>
 
 <script>
+    // Aaj ki date default set karne ke liye
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('joinDate').value = today;
+    });
+
     const onlineRadio = document.getElementById('online-radio');
     const qrBox = document.getElementById('qr-code-box');
     const planSelect = document.getElementById('planSelect');
