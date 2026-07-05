@@ -81,6 +81,7 @@ def register_user():
         
         if email: send_welcome_email(email, name)
         
+        # Sirf New User Notification generate hoga
         db.notifications.insert_one({
             'type': 'New User', 'message': f'🆕 Naya User: {name} ({phone}) - Plan: {plan}',
             'user_phone': phone, 'created_at': datetime.now(), 'is_read': False
@@ -158,15 +159,18 @@ def download_receipt(user_id):
     
     return send_file(buffer, as_attachment=True, download_name=f"SFZ_Receipt_{user['name']}.pdf", mimetype='application/pdf')
 
+# Naye Services Yahan Hain
 @main_bp.route('/services')
 def services():
     services_list = [
         {'icon': '🏋️', 'title': 'Strength Training', 'desc': 'Build raw power and muscle mass with certified trainers.'},
         {'icon': '🥗', 'title': 'Nutritional Guidance', 'desc': 'Custom diet plans tailored to your body goals.'},
         {'icon': '🔥', 'title': 'Weight / Fat Loss', 'desc': 'High-intensity routines to shred fat fast.'},
-        {'icon': '💪', 'title': 'Muscle Gain', 'desc': 'Hypertrophy focused training protocols.'},
-        {'icon': '🏃', 'title': 'Cardio & Endurance', 'desc': 'Improve stamina and heart health.'},
-        {'icon': '🧘', 'title': 'Flexibility & Mobility', 'desc': 'Recover faster and move better.'}
+        {'icon': '🍔', 'title': 'Weight Gain', 'desc': 'Mass building programs and diet for healthy weight gain.'},
+        {'icon': '🏃', 'title': 'Cardio', 'desc': 'Improve stamina and heart health.'},
+        {'icon': '💃', 'title': 'Zumba', 'desc': 'Dance fitness for a fun, energetic workout.'},
+        {'icon': '🤸', 'title': 'Aerobics', 'desc': 'Rhythmic aerobic exercise to stretch and strengthen.'},
+        {'icon': '👨‍🏫', 'title': 'Personal Training', 'desc': 'One-on-one coaching for targeted results.'}
     ]
     return render_template('services.html', services=services_list)
 
