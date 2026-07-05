@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from models.database import get_db
 from config import ADMIN_PASSWORD
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import wraps
 from bson import ObjectId
 
@@ -29,23 +29,14 @@ def admin_logout():
     session.clear()
     return redirect(url_for('main.index'))
 
-def check_expiry_notifications(db):
-    today = datetime.now()
-    three_days_later = today + timedelta(days=3)
-    for user in db.users.find({'status': 'Active'}):
-        expiry = user.get('expiry_date')
-        if expiry and today <= expiry <= three_days_later:
-            if not db.notifications.find_one({'user_phone': user['phone'], 'type': 'Expiry', 'is_read': False}):
-                db.notifications.insert_one({
-                    'type': 'Expiry', 'message': f"⚠️ {user['name']} ka plan {expiry.strftime('%d %b')} ko expire ho raha hai!",
-                    'user_phone': user['phone'], 'created_at': datetime.now(), 'is_read': False
-                })
+# Expiry notification wala function yahan se hata diya gaya hai
 
 @admin_bp.route('/admin/dashboard')
 @admin_required
 def dashboard():
     db = get_db()
-    check_expiry_notifications(db)
+    
+    # Stats get kar rahe hain
     active_users = db.users.count_documents({'status': 'Active'})
     pending_users = db.users.count_documents({'status': 'Pending'})
     current_month = datetime.now().month
