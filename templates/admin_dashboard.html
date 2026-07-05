@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | SFZ</title>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
 <div class="admin-nav">
-    <h1>🏋️ SFZ Admin Panel</h1>
+    <h1 style="font-family:'Oswald';">SFZ Admin Panel</h1>
     <div>
         <a href="{{ url_for('main.index') }}" style="font-size:14px; margin-right:15px;">View Site</a>
         <a href="{{ url_for('admin.admin_logout') }}" class="btn-admin">Logout</a>
@@ -18,7 +18,6 @@
 </div>
 
 <div class="section">
-    <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card"><h3>₹{{ total_payment }}</h3><p>Monthly Payment</p></div>
         <div class="stat-card"><h3>{{ pending_users }}</h3><p>Pending Users</p></div>
@@ -26,7 +25,6 @@
         <div class="stat-card"><h3>{{ notifications|length }}</h3><p>New Alerts</p></div>
     </div>
 
-    <!-- Notifications -->
     <div class="admin-card">
         <h2>🔔 Alert Notifications</h2>
         {% if notifications %}
@@ -41,48 +39,20 @@
         {% endif %}
     </div>
 
-    <!-- Search & Users -->
     <div class="admin-card">
-        <h2>👥 All Members</h2>
-        <form class="search-bar" method="GET" action="{{ url_for('admin.dashboard') }}">
-            <input type="text" name="search" placeholder="Search by Phone..." value="{{ search_query }}">
-            <button type="submit" class="btn-sm btn-edit">Search</button>
-            {% if search_query %} <a href="{{ url_for('admin.dashboard') }}" class="btn-sm btn-del">Clear</a> {% endif %}
-        </form>
+        <h2>👥 All Members (Live Search)</h2>
+        <div class="search-bar" style="margin-bottom:20px;">
+            <input type="text" id="searchInput" placeholder="Type Phone Number to search instantly..." style="width:100%;">
+        </div>
 
         <table>
             <thead>
-                <tr><th>Name</th><th>Phone</th><th>Address</th><th>Plan</th><th>Amount</th><th>Pay</th><th>Status</th><th>Expiry</th><th>Actions</th></tr>
+                <tr><th>Name</th><th>Phone</th><th>Gender</th><th>Batch</th><th>Plan</th><th>Amount</th><th>Pay Status</th><th>Expiry</th><th>Actions</th></tr>
             </thead>
-            <tbody>
-                {% for u in users %}
-                <tr>
-                    <form method="POST" action="{{ url_for('admin.edit_user', user_id=u._id) }}">
-                        <td><input type="text" name="name" value="{{ u.name }}" style="background:transparent; border:none; color:#fff; width:100px;"></td>
-                        <td><input type="text" name="phone" value="{{ u.phone }}" style="background:transparent; border:none; color:#fff; width:100px;"></td>
-                        <td><input type="text" name="address" value="{{ u.address }}" style="background:transparent; border:none; color:#fff; width:150px;"></td>
-                        <td>{{ u.plan }}</td>
-                        <td>₹{{ u.amount }}</td>
-                        <td>{{ u.payment_method }}</td>
-                        <td>
-                            <select name="status" style="background:#0a0a0a; color:#fff; border:1px solid #333;">
-                                <option {% if u.status == 'Active' %}selected{% endif %}>Active</option>
-                                <option {% if u.status == 'Pending' %}selected{% endif %}>Pending</option>
-                            </select>
-                        </td>
-                        <td>{% if u.expiry_date %}{{ u.expiry_date.strftime('%d %b %y') }}{% endif %}</td>
-                        <td>
-                            <button type="submit" class="btn-sm btn-edit">Save</button>
-                            <a href="{{ url_for('admin.delete_user', user_id=u._id) }}" class="btn-sm btn-del" onclick="return confirm('Delete user?')">Del</a>
-                        </td>
-                    </form>
-                </tr>
-                {% endfor %}
-            </tbody>
+            <tbody id="userTableBody"></tbody>
         </table>
     </div>
 
-    <!-- Feedbacks -->
     <div class="admin-card" id="feedbacks">
         <h2>💬 User Feedbacks</h2>
         <table>
@@ -100,5 +70,50 @@
     </div>
 </div>
 
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.getElementById('userTableBody');
+
+    function fetchUsers(query = '') {
+        fetch(`{{ url_for('admin.search_api') }}?q=${query}`)
+            .then(res => res.json())
+            .then(data => {
+                tableBody.innerHTML = '';
+                if(data.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#888;">No users found.</td></tr>';
+                    return;
+                }
+                data.forEach(u => {
+                    tableBody.innerHTML += `
+                        <tr>
+                            <form method="POST" action="/admin/edit/${u.id}">
+                                <td><input type="text" name="name" value="${u.name}" style="background:transparent; border:none; color:#fff; width:100px;"></td>
+                                <td><input type="text" name="phone" value="${u.phone}" style="background:transparent; border:none; color:#fff; width:100px;"></td>
+                                <td>${u.gender}</td>
+                                <td>${u.batch}</td>
+                                <td>${u.plan}</td>
+                                <td>₹${u.amount}</td>
+                                <td>
+                                    <select name="status" style="background:#111; color:#fff; border:1px solid #333; padding:5px;">
+                                        <option ${u.status === 'Active' ? 'selected' : ''}>Active</option>
+                                        <option ${u.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                    </select>
+                                </td>
+                                <td>${u.expiry}</td>
+                                <td style="display:flex; gap:5px;">
+                                    <button type="submit" class="btn-sm btn-edit">Save</button>
+                                    <a href="/download_receipt/${u.id}" class="btn-sm btn-edit" target="_blank">PDF</a>
+                                    <a href="/admin/delete/${u.id}" class="btn-sm btn-del" onclick="return confirm('Delete user?')">Del</a>
+                                </td>
+                            </form>
+                        </tr>
+                    `;
+                });
+            });
+    }
+
+    fetchUsers();
+    searchInput.addEventListener('input', function() { fetchUsers(this.value); });
+</script>
 </body>
 </html>
