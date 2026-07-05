@@ -3,21 +3,16 @@
 
 {% block content %}
 <div class="home-container">
-    <!-- Top Logo & Name -->
     <div class="header-section">
-        <!-- Yahan aapki image lag gayi hai -->
-        <img src="https://z-cdn-media.chatglm.cn/files/2ebf8818-e70d-4ebe-90a8-10eb66d08a32.png?auth_key=1883062089-c510b5614b37434a90fc89e6f7b0cafa-0-fba69131e6e34235f7963a6ee1b55c19" alt="SFZ Logo">
-        <h1>Spartan Fitness Zone</h1>
-        <p>STRONG BODY • STRONG MIND • SPARTAN SPIRIT</p>
+        <img src="https://z-cdn-media.chatglm.cn/files/7151a762-b945-4edb-b87c-d197f1f4690c.jpeg?auth_key=1883246624-7c7f1940a0194663807b4d43f04d3e03-0-a99cbe2b5351de5a21595946949ca870" alt="SFZ Logo" class="main-logo-img">
+        <h1>Spartan <span>Fitness Zone</span></h1>
+        <p>Strong Body • Strong Mind • Spartan Spirit</p>
     </div>
 
-    <!-- Grid: Left (Info & Fees) | Right (Registration Form) -->
     <div class="content-grid">
-        
-        <!-- Left Column -->
         <div>
             <div class="glass-card">
-                <h2>💰 Fee Structure</h2>
+                <h2 class="section-heading">Fee Structure</h2>
                 <div class="fee-list">
                     <div class="fee-item"><span>Monthly</span> <span class="price">₹1200</span></div>
                     <div class="fee-item"><span>Quarterly</span> <span class="price">₹3000</span></div>
@@ -27,7 +22,7 @@
                 
                 <div class="info-box">
                     <h3>📍 Location</h3>
-                    <p>Hawa Sadak Rd, Hawa Sadak, Nandpuri Colony, Ramnagar, Jaipur, Rajasthan 302019</p>
+                    <p>E9 - First Floor, Sharma Colony, Near Mangal Manch, Nandpuri, Jaipur, Rajasthan 302019</p>
                     <h3>📞 Contact</h3>
                     <p>84400 88706</p>
                     <h3>🕐 Opening Hours</h3>
@@ -37,32 +32,49 @@
             </div>
         </div>
 
-        <!-- Right Column (Form) -->
         <div class="glass-card">
-            <h2>📝 Registration Form</h2>
+            <h2 class="section-heading">Registration Form</h2>
             <form method="POST" action="{{ url_for('main.register_user') }}">
                 <input type="text" name="name" placeholder="Full Name *" required>
+                <input type="email" name="email" placeholder="Email Address">
                 <input type="text" name="phone" placeholder="Phone Number *" required pattern="[0-9]{10}">
-                <input type="text" name="address" placeholder="Address">
                 
-                <select name="plan">
-                    <option value="Monthly">Monthly (₹1200)</option>
-                    <option value="Quarterly">Quarterly (₹3000)</option>
-                    <option value="6 months">6 Months (₹5000)</option>
-                    <option value="Yearly">Yearly (₹8000)</option>
+                <div style="display:flex; gap:10px;">
+                    <select name="gender" style="flex:1;">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <select name="batch" style="flex:1;">
+                        <option value="Morning">Morning (5-10 AM)</option>
+                        <option value="Evening">Evening (4-10 PM)</option>
+                    </select>
+                </div>
+                
+                <input type="text" name="address" placeholder="Address">
+                <textarea name="comment" placeholder="Comment / Medical Issue (Optional)" rows="2"></textarea>
+                
+                <select name="plan" id="planSelect">
+                    <option value="Monthly" data-amount="1200">Monthly (₹1200)</option>
+                    <option value="Quarterly" data-amount="3000">Quarterly (₹3000)</option>
+                    <option value="6 months" data-amount="5000">6 Months (₹5000)</option>
+                    <option value="Yearly" data-amount="8000">Yearly (₹8000)</option>
                 </select>
 
-                <div class="payment-option">
-                    <label><input type="radio" name="payment_method" value="Cash" checked> Cash</label>
-                    <label><input type="radio" name="payment_method" value="Online" id="online-radio"> Online</label>
+                <div class="payment-option" style="display:flex; gap:20px; margin-bottom:15px;">
+                    <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="radio" name="payment_method" value="Cash" checked> Cash</label>
+                    <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="radio" name="payment_method" value="Online" id="online-radio"> Online</label>
                 </div>
 
-                <div id="qr-code-box" style="display:none; text-align:center; margin:15px 0;">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=spartan@upi&pn=SFZ" alt="UPI QR Code" style="border-radius:10px;">
-                    <p>Scan & Pay</p>
+                <div id="qr-code-box" class="payment-box" style="display:none;">
+                    <h4 style="color:var(--yellow); margin-bottom:10px;">Scan & Pay</h4>
+                    <img id="qrImage" src="" alt="UPI QR Code" style="width:180px; height:180px;">
+                    <p style="margin:10px 0; font-size:14px;">UPI ID: <strong style="color:var(--yellow);" id="upiText">{{ upi_id }}</strong></p>
+                    <button type="button" class="copy-btn" onclick="copyUPI()">Copy UPI ID</button>
+                    <p style="font-size:12px; color:#888; margin-top:10px;">* Pay & submit form to get PDF Receipt</p>
                 </div>
 
-                <button type="submit" class="btn-primary">Register Now</button>
+                <button type="submit" class="btn-primary" style="margin-top:20px;">Register Now</button>
             </form>
         </div>
     </div>
@@ -71,11 +83,27 @@
 <script>
     const onlineRadio = document.getElementById('online-radio');
     const qrBox = document.getElementById('qr-code-box');
-    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            if(this.value === 'Online') { qrBox.style.display = 'block'; } 
-            else { qrBox.style.display = 'none'; }
-        });
-    });
+    const planSelect = document.getElementById('planSelect');
+    const qrImage = document.getElementById('qrImage');
+    const upiId = "{{ upi_id }}";
+
+    function updateQR() {
+        if(onlineRadio.checked) {
+            qrBox.style.display = 'block';
+            const amount = planSelect.options[planSelect.selectedIndex].getAttribute('data-amount');
+            const upiUrl = `upi://pay?pa=${upiId}&pn=SpartanFitnessZone&am=${amount}&cu=INR`;
+            qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`;
+        } else {
+            qrBox.style.display = 'none';
+        }
+    }
+
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => radio.addEventListener('change', updateQR));
+    planSelect.addEventListener('change', updateQR);
+
+    function copyUPI() {
+        navigator.clipboard.writeText(upiId);
+        alert('UPI ID Copied!');
+    }
 </script>
 {% endblock %}
