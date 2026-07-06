@@ -18,6 +18,7 @@
 
 
 
+
 from flask import Flask
 from config import SECRET_KEY, GYM_PHONE, GYM_WHATSAPP, GYM_INSTAGRAM, RAZORPAY_KEY_ID
 from models.database import init_db
