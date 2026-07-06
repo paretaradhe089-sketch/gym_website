@@ -4,16 +4,35 @@
 {% block content %}
 <section class="page-header"><h1>Contact <span>Us</span></h1></section>
 
-<section class="section" style="display:grid; grid-template-columns: 1fr 1.5fr; gap:30px;">
-    <div class="glass-card">
-        <h3 style="color:var(--yellow); margin-bottom:15px; font-family:'Oswald'; text-transform:uppercase;">Visit Us</h3>
+<section class="section contact-section">
+    <div class="contact-info-card glass-card">
+        <h3 class="section-heading">Visit Us</h3>
         <p style="color:#ccc; margin-bottom:10px;">📍 E9 - First Floor, Sharma Colony, Jaipur, Rajasthan 302019</p>
-        <p style="color:#ccc; margin-bottom:10px;">📞 84400 88706</p>
-        <p style="color:#ccc;">🕐 Mon-Sat: 5-10am, 4-10pm</p>
+        
+        <div class="contact-buttons">
+            <a href="tel:{{ gym_phone }}" class="btn-contact btn-call">📞 Call Now</a>
+            <a href="{{ gym_whatsapp }}" target="_blank" class="btn-contact btn-whatsapp">💬 WhatsApp</a>
+            <a href="{{ gym_instagram }}" target="_blank" class="btn-contact btn-instagram">📸 Instagram</a>
+        </div>
+
+        <!-- Uploaded WhatsApp QR Code -->
+        <div class="qr-box">
+            <h4>Scan to Chat on WhatsApp</h4>
+            <img src="https://z-cdn-media.chatglm.cn/files/99c25129-390c-4fde-be92-98ee4fe1138e.jpeg?auth_key=1883349017-e8ab1ca05c3a4dd0bbdba6729cf8113f-0-07485ffb6abe38f9f4da1f2857b2a2ff" alt="WhatsApp QR Code">
+        </div>
+
+        <!-- Google Map -->
+        <div class="map-box" style="margin-top:20px;">
+            <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3558.8670922234246!2d75.85813087450822!3d26.87719496224528!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db5d1e6f1f5f5%3A0x5!2sNandpuri%2C%20Jaipur%2C%20Rajasthan%20302019!5e0!3m2!1sen!2sin!4v1700000000000" 
+                width="100%" height="200" style="border:0; border-radius:10px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
     </div>
+
     <div class="glass-card">
         <form method="POST" action="{{ url_for('main.contact') }}">
-            <h3 style="color:var(--yellow); margin-bottom:15px; font-family:'Oswald'; text-transform:uppercase;">Send Feedback</h3>
+            <h3 class="section-heading">Send Feedback</h3>
             <input type="text" name="name" placeholder="Your Name" required>
             <input type="email" name="email" placeholder="Email (Optional)">
             <textarea name="message" placeholder="Your Message" required rows="4"></textarea>
