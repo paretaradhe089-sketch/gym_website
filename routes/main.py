@@ -219,8 +219,6 @@ import config
 import razorpay
 
 main_bp = Blueprint('main', __name__)
-
-# Razorpay Client Initialize
 razorpay_client = razorpay.Client(auth=(config.RAZORPAY_KEY_ID, config.RAZORPAY_KEY_SECRET))
 
 def send_welcome_email(to_email, name):
@@ -255,12 +253,10 @@ def index():
 
 @main_bp.route('/create_order', methods=['POST'])
 def create_order():
-    """Create Razorpay Order before payment"""
     data = request.json
-    amount = int(data.get('amount', 1200)) * 100  # Razorpay takes amount in paise
+    amount = int(data.get('amount', 1200)) * 100
     
     db = get_db()
-    # Create a pending user entry first to get user_id
     user_data = {
         'name': data.get('name'), 'phone': data.get('phone'), 'email': data.get('email'),
         'gender': data.get('gender'), 'batch': data.get('batch'), 'address': data.get('address'),
@@ -272,7 +268,6 @@ def create_order():
     result = db.users.insert_one(user_data)
     user_id = str(result.inserted_id)
     
-    # Create Razorpay Order
     order = razorpay_client.order.create({
         'amount': amount,
         'currency': 'INR',
@@ -286,7 +281,6 @@ def create_order():
 def register_user():
     db = get_db()
     
-    # If Cash Payment
     if request.form.get('payment_method') == 'Cash':
         name = request.form.get('name', '').strip()
         phone = request.form.get('phone', '').strip()
@@ -316,7 +310,6 @@ def register_user():
 
 @main_bp.route('/verify_payment', methods=['POST'])
 def verify_payment():
-    """Verify Razorpay Signature and Activate Membership"""
     db = get_db()
     from bson import ObjectId
     
@@ -327,7 +320,6 @@ def verify_payment():
     user_id = data.get('user_id')
     
     try:
-        # Server-side Signature Verification
         params_dict = {
             'razorpay_order_id': razorpay_order_id,
             'razorpay_payment_id': razorpay_payment_id,
@@ -335,20 +327,18 @@ def verify_payment():
         }
         razorpay_client.utility.verify_payment_signature(params_dict)
         
-        # Capture Payment
         payment = razorpay_client.payment.fetch(razorpay_payment_id)
         if payment['status'] == 'captured' or payment['method'] == 'upi':
-            # Update User Status to Active
             db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'status': 'Active'}})
             
-            # Save Transaction Details
+            user = db.users.find_one({'_id': ObjectId(user_id)})
             transaction = {
                 'user_id': user_id,
-                'name': db.users.find_one({'_id': ObjectId(user_id)}).get('name'),
-                'phone': db.users.find_one({'_id': ObjectId(user_id)}).get('phone'),
-                'email': db.users.find_one({'_id': ObjectId(user_id)}).get('email'),
-                'plan': db.users.find_one({'_id': ObjectId(user_id)}).get('plan'),
-                'amount': db.users.find_one({'_id': ObjectId(user_id)}).get('amount'),
+                'name': user.get('name'),
+                'phone': user.get('phone'),
+                'email': user.get('email'),
+                'plan': user.get('plan'),
+                'amount': user.get('amount'),
                 'transaction_id': razorpay_payment_id,
                 'order_id': razorpay_order_id,
                 'payment_method': payment['method'],
@@ -468,3 +458,7 @@ def contact():
         flash('✅ Feedback bhej diya! Thank you.', 'success')
         return redirect(url_for('main.contact'))
     return render_template('contact.html')
+
+
+
+
