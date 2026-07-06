@@ -7,12 +7,62 @@
 </section>
 
 <section class="section">
-    <div class="services-grid">
+    <!-- Group Training Premium Section -->
+    <div class="feature-section glass-card">
+        <div class="feature-grid">
+            <div class="feature-img">
+                <img src="https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=800&q=80" alt="Group Training">
+            </div>
+            <div class="feature-content">
+                <h2 class="section-heading">Group Training</h2>
+                <p>Train together in a motivating environment with expert trainers. Our group sessions improve strength, endurance, confidence, and overall fitness while making workouts more enjoyable.</p>
+                <h4 style="color:var(--yellow); margin-top:20px; margin-bottom:10px;">Benefits</h4>
+                <ul class="benefits-list">
+                    <li>✓ Motivating Group Environment</li>
+                    <li>✓ Full Body Conditioning</li>
+                    <li>✓ Affordable Training Option</li>
+                    <li>✓ Increased Accountability</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nutrition Guidance Premium Section -->
+    <div class="feature-section glass-card" style="margin-top: 30px;">
+        <div class="feature-grid reverse">
+            <div class="feature-img">
+                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80" alt="Nutrition Guidance">
+            </div>
+            <div class="feature-content">
+                <h2 class="section-heading">Nutrition Guidance</h2>
+                <p>Get personalized nutrition guidance to support muscle gain, fat loss, weight management, and overall health. Our experts help you build healthy eating habits for long-term results.</p>
+                <h4 style="color:var(--yellow); margin-top:20px; margin-bottom:10px;">Benefits</h4>
+                <ul class="benefits-list">
+                    <li>✓ Customized Diet Plans</li>
+                    <li>✓ Fat Loss & Muscle Gain Support</li>
+                    <li>✓ Healthy Lifestyle Habits</li>
+                    <li>✓ Regular Progress Tracking</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Services Grid with Images & Benefits -->
+    <div class="services-grid" style="margin-top: 60px;">
         {% for s in services %}
         <div class="glass-card service-card">
+            <div class="service-img-container">
+                <img src="{{ s.img }}" alt="{{ s.title }}" class="service-img">
+            </div>
             <div class="icon">{{ s.icon }}</div>
             <h3>{{ s.title }}</h3>
             <p>{{ s.desc }}</p>
+            <h4 style="color:var(--yellow); margin-top:15px; margin-bottom:10px; font-size:14px;">Benefits</h4>
+            <ul class="benefits-list">
+                {% for b in s.benefits %}
+                    <li>✓ {{ b }}</li>
+                {% endfor %}
+            </ul>
         </div>
         {% endfor %}
     </div>
