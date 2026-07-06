@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Transactions | SFZ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="admin-nav">
+    <h1 style="font-family:'Oswald';">💳 Payment Transactions</h1>
+    <div>
+        <a href="{{ url_for('admin.dashboard') }}" style="font-size:14px; margin-right:15px;">Dashboard</a>
+        <a href="{{ url_for('admin.export_csv') }}" class="btn-admin">⬇️ Export CSV</a>
+    </div>
+</div>
+
+<div class="section">
+    <div class="admin-card">
+        <h2>Online Payment History</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Member Name</th>
+                    <th>Phone</th>
+                    <th>Plan</th>
+                    <th>Amount</th>
+                    <th>Transaction ID</th>
+                    <th>Order ID</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in payments %}
+                <tr>
+                    <td>{{ p.name }}</td>
+                    <td>{{ p.phone }}</td>
+                    <td>{{ p.plan }}</td>
+                    <td>₹{{ p.amount }}</td>
+                    <td style="font-size:10px;">{{ p.transaction_id }}</td>
+                    <td style="font-size:10px;">{{ p.order_id }}</td>
+                    <td>{{ p.payment_method|upper }}</td>
+                    <td style="color: #2ecc71; font-weight:bold;">{{ p.status }}</td>
+                    <td>{{ p.date.strftime('%d %b %Y') }}</td>
+                    <td>
+                        <a href="{{ url_for('main.download_receipt', user_id=p.user_id) }}" class="btn-sm btn-edit" target="_blank">PDF</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="10" style="text-align:center; color:#888;">No online transactions yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>
