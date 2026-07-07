@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # from flask import Flask
 # from config import SECRET_KEY
 # from models.database import init_db
@@ -19,9 +19,6 @@
 
 
 
-
-=======
->>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
 from flask import Flask
 from config import SECRET_KEY, GYM_PHONE, GYM_WHATSAPP, GYM_INSTAGRAM, RAZORPAY_KEY_ID
 from models.database import init_db
@@ -39,15 +36,11 @@ app.register_blueprint(admin_bp)
 @app.context_processor
 def inject_gym_info():
     return dict(
-        gym_phone=GYM_PHONE, 
-        gym_whatsapp=GYM_WHATSAPP, 
+        gym_phone=GYM_PHONE,
+        gym_whatsapp=GYM_WHATSAPP,
         gym_instagram=GYM_INSTAGRAM,
         razorpay_key_id=RAZORPAY_KEY_ID
     )
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     app.run(debug=True, port=5000)
-=======
-    app.run(debug=True, port=5000)
->>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
