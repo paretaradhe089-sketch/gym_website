@@ -19,7 +19,6 @@
 </div>
 
 <div class="section">
-    <!-- Stats Cards -->
     <div class="stats-grid">
         <div class="stat-card"><h3>₹{{ total_payment }}</h3><p>Monthly Payment</p></div>
         <div class="stat-card"><h3>{{ pending_users }}</h3><p>Pending Users</p></div>
@@ -27,7 +26,6 @@
         <div class="stat-card"><h3>{{ total_users }}</h3><p>Total Members</p></div>
     </div>
 
-    <!-- All Members Table with Live Search -->
     <div class="admin-card">
         <h2>👥 All Members (Live Search)</h2>
         <div class="search-bar" style="margin-bottom:20px;">
@@ -42,7 +40,6 @@
         </table>
     </div>
 
-    <!-- User Feedbacks Table -->
     <div class="admin-card" id="feedbacks">
         <h2>💬 User Feedbacks</h2>
         <table>
@@ -105,10 +102,7 @@
             });
     }
 
-    // Page load hote hi saare users laao
     fetchUsers();
-    
-    // Search box mein type karte hi filter karo (bina reload ke)
     searchInput.addEventListener('input', function() { fetchUsers(this.value); });
 </script>
 </body>
