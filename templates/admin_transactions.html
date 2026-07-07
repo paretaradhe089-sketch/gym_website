@@ -25,14 +25,17 @@
                 <tr>
                     <th>Member Name</th>
                     <th>Phone</th>
+                    <th>Email</th>
                     <th>Plan</th>
                     <th>Amount</th>
-                    <th>Transaction ID</th>
                     <th>Order ID</th>
+                    <th>Payment ID</th>
+                    <th>Transaction ID</th>
                     <th>Method</th>
                     <th>Status</th>
                     <th>Date</th>
-                    <th>Action</th>
+                    <th>Time</th>
+                    <th>Receipt</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,19 +43,22 @@
                 <tr>
                     <td>{{ p.name }}</td>
                     <td>{{ p.phone }}</td>
+                    <td>{{ p.email }}</td>
                     <td>{{ p.plan }}</td>
                     <td>₹{{ p.amount }}</td>
-                    <td style="font-size:10px;">{{ p.transaction_id }}</td>
                     <td style="font-size:10px;">{{ p.order_id }}</td>
+                    <td style="font-size:10px;">{{ p.payment_id }}</td>
+                    <td style="font-size:10px;">{{ p.transaction_id }}</td>
                     <td>{{ p.payment_method|upper }}</td>
                     <td style="color: #2ecc71; font-weight:bold;">{{ p.status }}</td>
-                    <td>{{ p.date.strftime('%d %b %Y') }}</td>
+                    <td>{{ p.date }}</td>
+                    <td>{{ p.time }}</td>
                     <td>
                         <a href="{{ url_for('main.download_receipt', user_id=p.user_id) }}" class="btn-sm btn-edit" target="_blank">PDF</a>
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="10" style="text-align:center; color:#888;">No online transactions yet.</td></tr>
+                <tr><td colspan="13" style="text-align:center; color:#888;">No online transactions yet.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
