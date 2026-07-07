@@ -9,6 +9,8 @@ import io
 
 admin_bp = Blueprint('admin', __name__)
 
+# ─── Middleware ──────────────────────────────────────────────────
+
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -16,6 +18,8 @@ def admin_required(f):
             return redirect(url_for('admin.admin_login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# ─── Auth Routes ────────────────────────────────────────────────
 
 @admin_bp.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -31,6 +35,8 @@ def admin_logout():
     session.clear()
     return redirect(url_for('main.index'))
 
+# ─── Dashboard & Notifications ─────────────────────────────────
+
 def check_expiry_notifications(db):
     today = datetime.now()
     three_days_later = today + timedelta(days=3)
@@ -39,9 +45,7 @@ def check_expiry_notifications(db):
         expiry = user.get('expiry_date')
         if expiry and today <= expiry <= three_days_later:
             if not db.notifications.find_one({
-                'user_phone': user['phone'],
-                'type': 'Expiry',
-                'is_read': False
+                'user_phone': user['phone'], 'type': 'Expiry', 'is_read': False
             }):
                 db.notifications.insert_one({
                     'type': 'Expiry',
@@ -68,9 +72,7 @@ def dashboard():
     total_payment = sum(
         u.get('amount', 0)
         for u in db.users.find({
-            'join_date': {
-                '$gte': datetime(current_year, current_month, 1)
-            },
+            'join_date': {'$gte': datetime(current_year, current_month, 1)},
             'payment_method': 'Cash'
         })
     )
@@ -90,6 +92,8 @@ def dashboard():
         feedbacks=feedbacks
     )
 
+# ─── Transactions & Export ─────────────────────────────────────
+
 @admin_bp.route('/admin/transactions')
 @admin_required
 def transactions():
@@ -107,7 +111,7 @@ def export_csv():
     writer = csv.writer(output)
 
     writer.writerow([
-        'Member Name', 'Phone', 'Email', 'Plan', 'Amount', 
+        'Member Name', 'Phone', 'Email', 'Plan', 'Amount',
         'Transaction ID', 'Order ID', 'Method', 'Status', 'Date'
     ])
 
@@ -133,6 +137,8 @@ def export_csv():
         headers={"Content-Disposition": "attachment; filename=SFZ_Transactions.csv"}
     )
 
+# ─── API & Actions ─────────────────────────────────────────────
+
 @admin_bp.route('/admin/search_api')
 @admin_required
 def search_api():
@@ -154,10 +160,10 @@ def search_api():
             'batch': u.get('batch', ''),
             'plan': u.get('plan', ''),
             'amount': u.get('amount', 0),
-            'payment_method': u.get('payment_method', ''),
+            'payment_method': u.get('payment_method', 'Cash'),
             'status': u.get('status', ''),
             'join_date': u.get('join_date').strftime('%d %b %y') if u.get('join_date') else 'N/A',
-            'expiry': u.get('expiry_date').strftime('%d %b %y') if u.get('expiry_date') else 'N/A'
+            'expiry': u.get('expiry_date').strftime('%d %b %y') if u.get('expiry_date') else 'N/A' # HTML ke liye zaroori hai
         })
 
     return jsonify(result)
