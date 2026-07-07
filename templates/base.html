@@ -6,7 +6,6 @@
     <title>{% block title %}Spartan Fitness Zone{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Razorpay Checkout Script -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
@@ -35,7 +34,6 @@
 
     <main>{% block content %}{% endblock %}</main>
 
-    <!-- Floating Contact Buttons -->
     <div class="floating-buttons">
         <a href="tel:{{ gym_phone }}" class="float-btn float-call">📞</a>
         <a href="{{ gym_whatsapp }}" target="_blank" class="float-btn float-wa">💬</a>
