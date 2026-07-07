@@ -44,3 +44,16 @@ def inject_gym_info():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
+
+
+# ─── Turbo Speed Optimization ───────────────────────────────────
+@app.after_request
+def add_header(response):
+    # Static files (CSS, JS, Images) ko 1 din ke liye cache kar lega browser mein
+    if 'static' in request.path:
+        response.headers['Cache-Control'] = 'public, max-age=86400'
+    else:
+        # HTML pages ko 10 seconds ke liye cache karega
+        response.headers['Cache-Control'] = 'public, max-age=10'
+    return response
