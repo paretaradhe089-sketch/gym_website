@@ -19,7 +19,7 @@
 
 
 
-from flask import Flask
+from flask import Flask, render_template, request
 from config import SECRET_KEY, GYM_PHONE, GYM_WHATSAPP, GYM_INSTAGRAM, RAZORPAY_KEY_ID
 from models.database import init_db
 from routes.main import main_bp
