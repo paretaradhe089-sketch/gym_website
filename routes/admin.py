@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 # from models.database import get_db
 # from config import ADMIN_PASSWORD
