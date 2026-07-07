@@ -97,6 +97,7 @@
 
 
 
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, Response
 from models.database import get_db
 from config import ADMIN_PASSWORD
 from datetime import datetime
@@ -215,10 +216,4 @@ def delete_feedback(feedback_id):
     db = get_db()
     db.feedback.delete_one({'_id': ObjectId(feedback_id)})
     flash('🗑️ Feedback deleted!', 'success')
-    return redirect(url_for('admin.dashboard') + '#feedbacks')ard') + '#feedbacks')
-
-
-
-
-
-
+    return redirect(url_for('admin.dashboard') + '#feedbacks')
