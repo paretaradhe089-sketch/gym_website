@@ -458,7 +458,3 @@ def contact():
         flash('✅ Feedback bhej diya! Thank you.', 'success')
         return redirect(url_for('main.contact'))
     return render_template('contact.html')
-
-
-
-
