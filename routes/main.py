@@ -306,7 +306,9 @@ def services():
         {'icon': '🤼', 'title': 'CrossFit', 'desc': 'High-intensity functional movements to push your limits.', 'img': 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80', 'benefits': ['Full Body Workout', 'Agility & Speed', 'Community Support', 'Functional Strength']},
         {'icon': '🧘', 'title': 'Yoga', 'desc': 'Improve flexibility, balance, and mental peace.', 'img': 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80', 'benefits': ['Flexibility', 'Mental Peace', 'Injury Prevention', 'Better Breathing']},
         {'icon': '🏃‍♂️', 'title': 'Functional Training', 'desc': 'Exercises that mimic daily activities for real-world strength.', 'img': 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=800&q=80', 'benefits': ['Real-world Strength', 'Balance Improvement', 'Core Stability', 'Mobility']},
-        {'icon': '👨‍🏫', 'title': 'Personal Training', 'desc': 'One-on-one coaching for targeted results.', 'img': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80', 'benefits': ['Customized Plan', 'Dedicated Attention', 'Faster Results', 'Form Correction']}
+        
+        # 🔥 APKI PERSONAL GYM KI REAL IMAGE
+        {'icon': '👨‍🏫', 'title': 'Personal Training', 'desc': 'One-on-one coaching for targeted results.', 'img': 'https://z-cdn-media.chatglm.cn/files/eb079bcd-f726-4f6b-9c14-1046d9a1f66b.jpeg?auth_key=1883427549-8e9587ab7541417097121551931b1108-0-8e1e958fdb42ff4215386cf6e40d0eb0', 'benefits': ['Customized Plan', 'Dedicated Attention', 'Faster Results', 'Form Correction']}
     ]
     return render_template('services.html', services=services_list)
 
