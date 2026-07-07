@@ -27,6 +27,23 @@
     </div>
 
     <div class="admin-card">
+<<<<<<< HEAD
+=======
+        <h2>🔔 Alert Notifications</h2>
+        {% if notifications %}
+            {% for n in notifications %}
+            <div class="notif-box">
+                <span>{{ n.message }} <small style="color:#888;">({{ n.created_at.strftime('%d %b, %I:%M %p') }})</small></span>
+                <a href="{{ url_for('admin.delete_notification', notif_id=n._id) }}" class="btn-sm btn-del">Clear</a>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:#888;">No new notifications.</p>
+        {% endif %}
+    </div>
+
+    <div class="admin-card">
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
         <h2>👥 All Members (Live Search)</h2>
         <div class="search-bar" style="margin-bottom:20px;">
             <input type="text" id="searchInput" placeholder="Type Phone Number to search instantly..." style="width:100%;">
@@ -34,7 +51,11 @@
 
         <table>
             <thead>
+<<<<<<< HEAD
                 <tr><th>Name</th><th>Phone</th><th>Gender</th><th>Batch</th><th>Plan</th><th>Join Date</th><th>Amount</th><th>Status</th><th>Actions</th></tr>
+=======
+                <tr><th>Name</th><th>Phone</th><th>Gender</th><th>Batch</th><th>Plan</th><th>Amount</th><th>Pay Status</th><th>Expiry</th><th>Actions</th></tr>
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
             </thead>
             <tbody id="userTableBody"></tbody>
         </table>
@@ -75,6 +96,7 @@
                         <tr>
                             <form method="POST" action="/admin/edit/${u.id}">
                                 <td><input type="text" name="name" value="${u.name}" style="background:transparent; border:none; color:#fff; width:100px;"></td>
+<<<<<<< HEAD
                                 <td style="white-space: nowrap;">
                                     <input type="text" name="phone" value="${u.phone}" style="background:transparent; border:none; color:#fff; width:80px; display:inline-block;">
                                     <a href="tel:${u.phone}" class="btn-sm btn-edit" style="padding: 5px 8px; margin-left: 5px; text-decoration:none;">📞 Call</a>
@@ -83,6 +105,12 @@
                                 <td>${u.batch}</td>
                                 <td>${u.plan}</td>
                                 <td>${u.join_date}</td>
+=======
+                                <td><input type="text" name="phone" value="${u.phone}" style="background:transparent; border:none; color:#fff; width:100px;"></td>
+                                <td>${u.gender}</td>
+                                <td>${u.batch}</td>
+                                <td>${u.plan}</td>
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
                                 <td>₹${u.amount}</td>
                                 <td>
                                     <select name="status" style="background:#111; color:#fff; border:1px solid #333; padding:5px;">
@@ -90,6 +118,10 @@
                                         <option ${u.status === 'Pending' ? 'selected' : ''}>Pending</option>
                                     </select>
                                 </td>
+<<<<<<< HEAD
+=======
+                                <td>${u.expiry}</td>
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
                                 <td style="display:flex; gap:5px;">
                                     <button type="submit" class="btn-sm btn-edit">Save</button>
                                     <a href="/download_receipt/${u.id}" class="btn-sm btn-edit" target="_blank">PDF</a>

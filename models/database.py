@@ -19,4 +19,8 @@ def init_db():
     except ConnectionFailure as e:
         print(f"❌ MONGODB CONNECTION FAILED! Check MONGO_URI.")
     except Exception as e:
+<<<<<<< HEAD
         print(f"❌ Error: {e}")
+=======
+        print(f"❌ Error: {e}")
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)

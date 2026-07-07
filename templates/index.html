@@ -3,6 +3,7 @@
 
 {% block content %}
 <div class="home-container">
+<<<<<<< HEAD
     <!-- New Hero Section Like "Call Us Today" -->
     <div class="hero-banner">
         <h1>SPARTAN FITNESS ZONE</h1>
@@ -11,6 +12,15 @@
     </div>
 
     <div class="content-grid" style="margin-top: 40px;">
+=======
+    <div class="header-section">
+        <img src="https://z-cdn-media.chatglm.cn/files/7151a762-b945-4edb-b87c-d197f1f4690c.jpeg?auth_key=1883246624-7c7f1940a0194663807b4d43f04d3e03-0-a99cbe2b5351de5a21595946949ca870" alt="SFZ Logo" class="main-logo-img">
+        <h1>Spartan <span>Fitness Zone</span></h1>
+        <p>Strong Body • Strong Mind • Spartan Spirit</p>
+    </div>
+
+    <div class="content-grid">
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
         <div>
             <div class="glass-card">
                 <h2 class="section-heading">Fee Structure</h2>
@@ -35,6 +45,7 @@
 
         <div class="glass-card">
             <h2 class="section-heading">Registration Form</h2>
+<<<<<<< HEAD
             <form id="registerForm" method="POST" action="{{ url_for('main.register_user') }}">
                 <input type="text" name="name" id="name" placeholder="Full Name *" required>
                 <input type="email" name="email" id="email" placeholder="Email Address">
@@ -42,21 +53,39 @@
                 
                 <div style="display:flex; gap:10px;">
                     <select name="gender" id="gender" style="flex:1;">
+=======
+            <form method="POST" action="{{ url_for('main.register_user') }}">
+                <input type="text" name="name" placeholder="Full Name *" required>
+                <input type="email" name="email" placeholder="Email Address">
+                <input type="text" name="phone" placeholder="Phone Number *" required pattern="[0-9]{10}">
+                
+                <div style="display:flex; gap:10px;">
+                    <select name="gender" style="flex:1;">
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                         <option value="Other">Other</option>
                     </select>
+<<<<<<< HEAD
                     <select name="batch" id="batch" style="flex:1;">
+=======
+                    <select name="batch" style="flex:1;">
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
                         <option value="Morning">Morning (5-10 AM)</option>
                         <option value="Evening">Evening (4-10 PM)</option>
                     </select>
                 </div>
                 
+<<<<<<< HEAD
                 <label style="font-size:12px; color:var(--yellow); margin-bottom:5px; display:block;">Select Joining Date</label>
                 <input type="date" name="join_date" id="joinDate" required style="color-scheme: dark;">
 
                 <input type="text" name="address" id="address" placeholder="Address">
                 <textarea name="comment" id="comment" placeholder="Comment / Medical Issue (Optional)" rows="2"></textarea>
+=======
+                <input type="text" name="address" placeholder="Address">
+                <textarea name="comment" placeholder="Comment / Medical Issue (Optional)" rows="2"></textarea>
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
                 
                 <select name="plan" id="planSelect">
                     <option value="Monthly" data-amount="1200">Monthly (₹1200)</option>
@@ -67,6 +96,7 @@
 
                 <div class="payment-option" style="display:flex; gap:20px; margin-bottom:15px;">
                     <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="radio" name="payment_method" value="Cash" checked> Cash</label>
+<<<<<<< HEAD
                     <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="radio" name="payment_method" value="Online" id="online-radio"> Online (Razorpay)</label>
                 </div>
 
@@ -75,6 +105,17 @@
                     <h4 style="color:var(--yellow); margin-bottom:10px;">Scan & Pay (Optional)</h4>
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa={{ upi_id }}&pn=SFZ" alt="UPI QR Code" style="width:180px; height:180px;">
                     <p style="font-size:12px; color:#888; margin-top:10px;">* Click Register Now to proceed to secure Razorpay Checkout.</p>
+=======
+                    <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="radio" name="payment_method" value="Online" id="online-radio"> Online</label>
+                </div>
+
+                <div id="qr-code-box" class="payment-box" style="display:none;">
+                    <h4 style="color:var(--yellow); margin-bottom:10px;">Scan & Pay</h4>
+                    <img id="qrImage" src="" alt="UPI QR Code" style="width:180px; height:180px;">
+                    <p style="margin:10px 0; font-size:14px;">UPI ID: <strong style="color:var(--yellow);" id="upiText">{{ upi_id }}</strong></p>
+                    <button type="button" class="copy-btn" onclick="copyUPI()">Copy UPI ID</button>
+                    <p style="font-size:12px; color:#888; margin-top:10px;">* Pay & submit form to get PDF Receipt</p>
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
                 </div>
 
                 <button type="submit" class="btn-primary" style="margin-top:20px;">Register Now</button>
@@ -91,6 +132,7 @@
     // QR Code Toggle Fix
     const onlineRadio = document.getElementById('online-radio');
     const qrBox = document.getElementById('qr-code-box');
+<<<<<<< HEAD
     
     document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
         radio.addEventListener('change', function() {
@@ -176,5 +218,29 @@
             });
         }
     });
+=======
+    const planSelect = document.getElementById('planSelect');
+    const qrImage = document.getElementById('qrImage');
+    const upiId = "{{ upi_id }}";
+
+    function updateQR() {
+        if(onlineRadio.checked) {
+            qrBox.style.display = 'block';
+            const amount = planSelect.options[planSelect.selectedIndex].getAttribute('data-amount');
+            const upiUrl = `upi://pay?pa=${upiId}&pn=SpartanFitnessZone&am=${amount}&cu=INR`;
+            qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`;
+        } else {
+            qrBox.style.display = 'none';
+        }
+    }
+
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => radio.addEventListener('change', updateQR));
+    planSelect.addEventListener('change', updateQR);
+
+    function copyUPI() {
+        navigator.clipboard.writeText(upiId);
+        alert('UPI ID Copied!');
+    }
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
 </script>
 {% endblock %}

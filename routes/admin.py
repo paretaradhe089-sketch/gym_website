@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 # from models.database import get_db
 # from config import ADMIN_PASSWORD
@@ -98,6 +99,9 @@
 
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, Response
+=======
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
 from models.database import get_db
 from config import ADMIN_PASSWORD
 from datetime import datetime
@@ -130,18 +134,40 @@ def admin_logout():
     session.clear()
     return redirect(url_for('main.index'))
 
+<<<<<<< HEAD
+=======
+def check_expiry_notifications(db):
+    today = datetime.now()
+    three_days_later = today + timedelta(days=3)
+    for user in db.users.find({'status': 'Active'}):
+        expiry = user.get('expiry_date')
+        if expiry and today <= expiry <= three_days_later:
+            if not db.notifications.find_one({'user_phone': user['phone'], 'type': 'Expiry', 'is_read': False}):
+                db.notifications.insert_one({
+                    'type': 'Expiry', 'message': f"⚠️ {user['name']} ka plan {expiry.strftime('%d %b')} ko expire ho raha hai!",
+                    'user_phone': user['phone'], 'created_at': datetime.now(), 'is_read': False
+                })
+
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
 @admin_bp.route('/admin/dashboard')
 @admin_required
 def dashboard():
     db = get_db()
+<<<<<<< HEAD
     active_users = db.users.count_documents({'status': 'Active'})
     pending_users = db.users.count_documents({'status': 'Pending'})
     total_users = db.users.count_documents({})
+=======
+    check_expiry_notifications(db)
+    active_users = db.users.count_documents({'status': 'Active'})
+    pending_users = db.users.count_documents({'status': 'Pending'})
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
     current_month = datetime.now().month
     current_year = datetime.now().year
     total_payment = sum(u.get('amount', 0) for u in db.users.find({'join_date': {'$gte': datetime(current_year, current_month, 1)}, 'payment_method': 'Cash'}))
     
     users = list(db.users.find().sort('join_date', -1))
+<<<<<<< HEAD
     feedbacks = list(db.feedback.find().sort('created_at', -1))
 
     return render_template('admin_dashboard.html', active_users=active_users, pending_users=pending_users, total_payment=total_payment, total_users=total_users, users=users, feedbacks=feedbacks)
@@ -172,6 +198,12 @@ def export_csv():
         
     output.seek(0)
     return Response(output, mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=SFZ_Transactions.csv"})
+=======
+    notifications = list(db.notifications.find({'is_read': False}).sort('created_at', -1))
+    feedbacks = list(db.feedback.find().sort('created_at', -1))
+
+    return render_template('admin_dashboard.html', active_users=active_users, pending_users=pending_users, total_payment=total_payment, users=users, notifications=notifications, feedbacks=feedbacks)
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
 
 @admin_bp.route('/admin/search_api')
 @admin_required
@@ -186,8 +218,12 @@ def search_api():
             'gender': u.get('gender', ''), 'batch': u.get('batch', ''), 'plan': u.get('plan', ''),
             'amount': u.get('amount', 0), 'payment_method': u.get('payment_method', ''),
             'status': u.get('status', ''),
+<<<<<<< HEAD
             'join_date': u.get('join_date').strftime('%d %b %y') if u.get('join_date') else 'N/A',
             'expiry': u.get('expiry_date').strftime('%d %b %y') if u.get('expiry_date') else 'N/A'
+=======
+            'expiry': u.get('expiry_date').strftime('%d %b %y') if u.get('expiry_date') else ''
+>>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
         })
     return jsonify(result)
 
