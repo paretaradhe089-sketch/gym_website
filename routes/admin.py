@@ -89,7 +89,7 @@
 #     db = get_db()
 #     db.feedback.delete_one({'_id': ObjectId(feedback_id)})
 #     flash('🗑️ Feedback deleted!', 'success')
-#     return redirect(url_for('admin.dashboard') + '#feedbacks')
+#     return redirect(url_for('admin.dashbofrom flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, Response
 
 
 
@@ -97,13 +97,13 @@
 
 
 
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, Response
 from models.database import get_db
 from config import ADMIN_PASSWORD
 from datetime import datetime
 from functools import wraps
 from bson import ObjectId
 import csv
+import io
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -145,7 +145,6 @@ def dashboard():
 
     return render_template('admin_dashboard.html', active_users=active_users, pending_users=pending_users, total_payment=total_payment, total_users=total_users, users=users, feedbacks=feedbacks)
 
-# NEW ROUTE: Payment Transactions
 @admin_bp.route('/admin/transactions')
 @admin_required
 def transactions():
@@ -153,7 +152,6 @@ def transactions():
     payments = list(db.payments.find().sort('date', -1))
     return render_template('admin_transactions.html', payments=payments)
 
-# NEW ROUTE: Export CSV
 @admin_bp.route('/admin/export_csv')
 @admin_required
 def export_csv():
@@ -217,7 +215,10 @@ def delete_feedback(feedback_id):
     db = get_db()
     db.feedback.delete_one({'_id': ObjectId(feedback_id)})
     flash('🗑️ Feedback deleted!', 'success')
-    return redirect(url_for('admin.dashboard') + '#feedbacks')
+    return redirect(url_for('admin.dashboard') + '#feedbacks')ard') + '#feedbacks')
 
-# Need to import io for CSV
-import io
+
+
+
+
+
