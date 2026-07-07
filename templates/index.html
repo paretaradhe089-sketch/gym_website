@@ -3,13 +3,14 @@
 
 {% block content %}
 <div class="home-container">
-    <div class="header-section">
-        <img src="https://z-cdn-media.chatglm.cn/files/7151a762-b945-4edb-b87c-d197f1f4690c.jpeg?auth_key=1883246624-7c7f1940a0194663807b4d43f04d3e03-0-a99cbe2b5351de5a21595946949ca870" alt="SFZ Logo" class="main-logo-img">
-        <h1>Spartan <span>Fitness Zone</span></h1>
-        <p>Strong Body • Strong Mind • Spartan Spirit</p>
+    <!-- New Hero Section Like "Call Us Today" -->
+    <div class="hero-banner">
+        <h1>SPARTAN FITNESS ZONE</h1>
+        <p>Transform Your Body, Transform Your Life.</p>
+        <a href="tel:{{ gym_phone }}" class="btn-primary" style="display: inline-block; width: auto; padding: 15px 40px;">📞 Call Us Today</a>
     </div>
 
-    <div class="content-grid">
+    <div class="content-grid" style="margin-top: 40px;">
         <div>
             <div class="glass-card">
                 <h2 class="section-heading">Fee Structure</h2>
@@ -69,6 +70,13 @@
                     <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="radio" name="payment_method" value="Online" id="online-radio"> Online (Razorpay)</label>
                 </div>
 
+                <!-- QR Code Box Fixed -->
+                <div id="qr-code-box" class="payment-box" style="display:none;">
+                    <h4 style="color:var(--yellow); margin-bottom:10px;">Scan & Pay (Optional)</h4>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa={{ upi_id }}&pn=SFZ" alt="UPI QR Code" style="width:180px; height:180px;">
+                    <p style="font-size:12px; color:#888; margin-top:10px;">* Click Register Now to proceed to secure Razorpay Checkout.</p>
+                </div>
+
                 <button type="submit" class="btn-primary" style="margin-top:20px;">Register Now</button>
             </form>
         </div>
@@ -78,6 +86,20 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('joinDate').value = new Date().toISOString().split('T')[0];
+    });
+
+    // QR Code Toggle Fix
+    const onlineRadio = document.getElementById('online-radio');
+    const qrBox = document.getElementById('qr-code-box');
+    
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if(onlineRadio.checked) {
+                qrBox.style.display = 'block';
+            } else {
+                qrBox.style.display = 'none';
+            }
+        });
     });
 
     document.getElementById('registerForm').addEventListener('submit', function(e) {
