@@ -99,18 +99,16 @@
 
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, Response
-=======
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
->>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
 from models.database import get_db
 from config import ADMIN_PASSWORD
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from bson import ObjectId
 import csv
 import io
 
 admin_bp = Blueprint('admin', __name__)
+
 
 def admin_required(f):
     @wraps(f)
@@ -119,6 +117,7 @@ def admin_required(f):
             return redirect(url_for('admin.admin_login'))
         return f(*args, **kwargs)
     return decorated_function
+
 
 @admin_bp.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -129,48 +128,73 @@ def admin_login():
         flash('❌ Galat Password!', 'error')
     return render_template('admin_login.html')
 
+
 @admin_bp.route('/admin/logout')
 def admin_logout():
     session.clear()
     return redirect(url_for('main.index'))
 
-<<<<<<< HEAD
-=======
+
 def check_expiry_notifications(db):
     today = datetime.now()
     three_days_later = today + timedelta(days=3)
+
     for user in db.users.find({'status': 'Active'}):
         expiry = user.get('expiry_date')
         if expiry and today <= expiry <= three_days_later:
-            if not db.notifications.find_one({'user_phone': user['phone'], 'type': 'Expiry', 'is_read': False}):
+            if not db.notifications.find_one({
+                'user_phone': user['phone'],
+                'type': 'Expiry',
+                'is_read': False
+            }):
                 db.notifications.insert_one({
-                    'type': 'Expiry', 'message': f"⚠️ {user['name']} ka plan {expiry.strftime('%d %b')} ko expire ho raha hai!",
-                    'user_phone': user['phone'], 'created_at': datetime.now(), 'is_read': False
+                    'type': 'Expiry',
+                    'message': f"⚠️ {user['name']} ka plan {expiry.strftime('%d %b')} ko expire ho raha hai!",
+                    'user_phone': user['phone'],
+                    'created_at': datetime.now(),
+                    'is_read': False
                 })
 
->>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
+
 @admin_bp.route('/admin/dashboard')
 @admin_required
 def dashboard():
     db = get_db()
-<<<<<<< HEAD
+
+    check_expiry_notifications(db)
+
     active_users = db.users.count_documents({'status': 'Active'})
     pending_users = db.users.count_documents({'status': 'Pending'})
     total_users = db.users.count_documents({})
-=======
-    check_expiry_notifications(db)
-    active_users = db.users.count_documents({'status': 'Active'})
-    pending_users = db.users.count_documents({'status': 'Pending'})
->>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
+
     current_month = datetime.now().month
     current_year = datetime.now().year
-    total_payment = sum(u.get('amount', 0) for u in db.users.find({'join_date': {'$gte': datetime(current_year, current_month, 1)}, 'payment_method': 'Cash'}))
-    
+
+    total_payment = sum(
+        u.get('amount', 0)
+        for u in db.users.find({
+            'join_date': {
+                '$gte': datetime(current_year, current_month, 1)
+            },
+            'payment_method': 'Cash'
+        })
+    )
+
     users = list(db.users.find().sort('join_date', -1))
-<<<<<<< HEAD
+    notifications = list(db.notifications.find({'is_read': False}).sort('created_at', -1))
     feedbacks = list(db.feedback.find().sort('created_at', -1))
 
-    return render_template('admin_dashboard.html', active_users=active_users, pending_users=pending_users, total_payment=total_payment, total_users=total_users, users=users, feedbacks=feedbacks)
+    return render_template(
+        'admin_dashboard.html',
+        active_users=active_users,
+        pending_users=pending_users,
+        total_users=total_users,
+        total_payment=total_payment,
+        users=users,
+        notifications=notifications,
+        feedbacks=feedbacks
+    )
+
 
 @admin_bp.route('/admin/transactions')
 @admin_required
@@ -179,64 +203,111 @@ def transactions():
     payments = list(db.payments.find().sort('date', -1))
     return render_template('admin_transactions.html', payments=payments)
 
+
 @admin_bp.route('/admin/export_csv')
 @admin_required
 def export_csv():
     db = get_db()
     payments = list(db.payments.find().sort('date', -1))
-    
+
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['Member Name', 'Phone', 'Email', 'Plan', 'Amount', 'Transaction ID', 'Order ID', 'Method', 'Status', 'Date'])
-    
+
+    writer.writerow([
+        'Member Name',
+        'Phone',
+        'Email',
+        'Plan',
+        'Amount',
+        'Transaction ID',
+        'Order ID',
+        'Method',
+        'Status',
+        'Date'
+    ])
+
     for p in payments:
         writer.writerow([
-            p.get('name', ''), p.get('phone', ''), p.get('email', ''), p.get('plan', ''),
-            p.get('amount', 0), p.get('transaction_id', ''), p.get('order_id', ''),
-            p.get('payment_method', ''), p.get('status', ''), p.get('date', '')
+            p.get('name', ''),
+            p.get('phone', ''),
+            p.get('email', ''),
+            p.get('plan', ''),
+            p.get('amount', 0),
+            p.get('transaction_id', ''),
+            p.get('order_id', ''),
+            p.get('payment_method', ''),
+            p.get('status', ''),
+            p.get('date', '')
         ])
-        
-    output.seek(0)
-    return Response(output, mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=SFZ_Transactions.csv"})
-=======
-    notifications = list(db.notifications.find({'is_read': False}).sort('created_at', -1))
-    feedbacks = list(db.feedback.find().sort('created_at', -1))
 
-    return render_template('admin_dashboard.html', active_users=active_users, pending_users=pending_users, total_payment=total_payment, users=users, notifications=notifications, feedbacks=feedbacks)
->>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
+    output.seek(0)
+
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=SFZ_Transactions.csv"
+        }
+    )
+
 
 @admin_bp.route('/admin/search_api')
 @admin_required
 def search_api():
     db = get_db()
+
     q = request.args.get('q', '')
-    users = list(db.users.find({'phone': {'$regex': q, '$options': 'i'}})) if q else list(db.users.find().sort('join_date', -1))
+
+    if q:
+        users = list(db.users.find({
+            'phone': {
+                '$regex': q,
+                '$options': 'i'
+            }
+        }))
+    else:
+        users = list(db.users.find().sort('join_date', -1))
+
     result = []
+
     for u in users:
         result.append({
-            'id': str(u['_id']), 'name': u.get('name', ''), 'phone': u.get('phone', ''),
-            'gender': u.get('gender', ''), 'batch': u.get('batch', ''), 'plan': u.get('plan', ''),
-            'amount': u.get('amount', 0), 'payment_method': u.get('payment_method', ''),
+            'id': str(u['_id']),
+            'name': u.get('name', ''),
+            'phone': u.get('phone', ''),
+            'gender': u.get('gender', ''),
+            'batch': u.get('batch', ''),
+            'plan': u.get('plan', ''),
+            'amount': u.get('amount', 0),
+            'payment_method': u.get('payment_method', ''),
             'status': u.get('status', ''),
-<<<<<<< HEAD
             'join_date': u.get('join_date').strftime('%d %b %y') if u.get('join_date') else 'N/A',
             'expiry': u.get('expiry_date').strftime('%d %b %y') if u.get('expiry_date') else 'N/A'
-=======
-            'expiry': u.get('expiry_date').strftime('%d %b %y') if u.get('expiry_date') else ''
->>>>>>> dfea781 (Added Hero Banner, Fixed Razorpay and Group Image)
         })
+
     return jsonify(result)
+
 
 @admin_bp.route('/admin/edit/<user_id>', methods=['POST'])
 @admin_required
 def edit_user(user_id):
     db = get_db()
-    db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {
-        'name': request.form.get('name'), 'phone': request.form.get('phone'),
-        'address': request.form.get('address'), 'status': request.form.get('status')
-    }})
+
+    db.users.update_one(
+        {'_id': ObjectId(user_id)},
+        {
+            '$set': {
+                'name': request.form.get('name'),
+                'phone': request.form.get('phone'),
+                'address': request.form.get('address'),
+                'status': request.form.get('status')
+            }
+        }
+    )
+
     flash('✅ User updated!', 'success')
     return redirect(url_for('admin.dashboard'))
+
 
 @admin_bp.route('/admin/delete/<user_id>')
 @admin_required
@@ -245,6 +316,7 @@ def delete_user(user_id):
     db.users.delete_one({'_id': ObjectId(user_id)})
     flash('🗑️ User deleted!', 'success')
     return redirect(url_for('admin.dashboard'))
+
 
 @admin_bp.route('/admin/delete_feedback/<feedback_id>')
 @admin_required
