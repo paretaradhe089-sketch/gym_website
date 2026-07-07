@@ -167,7 +167,7 @@ def export_csv():
         writer.writerow([
             p.get('name', ''), p.get('phone', ''), p.get('email', ''), p.get('plan', ''),
             p.get('amount', 0), p.get('transaction_id', ''), p.get('order_id', ''),
-            p.get('payment_method', ''), p.get('status', ''), p.get('date').strftime('%d %b %Y')
+            p.get('payment_method', ''), p.get('status', ''), p.get('date', '')
         ])
         
     output.seek(0)
@@ -217,3 +217,6 @@ def delete_feedback(feedback_id):
     db.feedback.delete_one({'_id': ObjectId(feedback_id)})
     flash('🗑️ Feedback deleted!', 'success')
     return redirect(url_for('admin.dashboard') + '#feedbacks')
+
+
+
