@@ -19,7 +19,6 @@
     </div>
 
     <div class="section">
-
         <div class="stats-grid">
             <div class="stat-card"><h3>₹{{ total_payment }}</h3><p>Monthly Payment</p></div>
             <div class="stat-card"><h3>{{ pending_users }}</h3><p>Pending Users</p></div>
@@ -28,21 +27,7 @@
         </div>
 
         <div class="admin-card">
-            <h2>🔔 Alert Notifications</h2>
-            {% if notifications %}
-                {% for n in notifications %}
-                <div class="notif-box">
-                    <span>{{ n.message }} <small style="color:#888;">({{ n.created_at.strftime('%d %b, %I:%M %p') }})</small></span>
-                    <a href="{{ url_for('admin.delete_notification', notif_id=n._id) }}" class="btn-sm btn-del">Clear</a>
-                </div>
-                {% endfor %}
-            {% else %}
-                <p style="color:#888;">No new notifications.</p>
-            {% endif %}
-        </div>
-
-        <div class="admin-card">
-            <h2>👥 All Members (Live Search)</h2>
+            <h2>👥 Registered Members</h2>
             <div class="search-bar" style="margin-bottom:20px;">
                 <input type="text" id="searchInput" placeholder="Type Phone Number to search instantly..." style="width:100%;">
             </div>
@@ -55,9 +40,10 @@
                         <th>Gender</th>
                         <th>Batch</th>
                         <th>Plan</th>
+                        <th>Join Date</th>
                         <th>Amount</th>
-                        <th>Pay Status</th>
-                        <th>Expiry</th>
+                        <th>Pay Mode</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -90,7 +76,6 @@
                 </tbody>
             </table>
         </div>
-
     </div>
 
     <script>
@@ -103,7 +88,7 @@
                 .then(data => {
                     tableBody.innerHTML = '';
                     if (data.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#888;">No users found.</td></tr>';
+                        tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:#888;">No users found.</td></tr>';
                         return;
                     }
                     data.forEach(u => {
@@ -115,19 +100,20 @@
                                     </td>
                                     <td style="white-space: nowrap;">
                                         <input type="text" name="phone" value="${u.phone}" style="background:transparent; border:none; color:#fff; width:80px; display:inline-block;">
-                                        <a href="tel:${u.phone}" class="btn-sm btn-edit" style="padding:5px 8px; margin-left:5px; text-decoration:none;">📞 Call</a>
+                                        <a href="tel:${u.phone}" class="btn-sm btn-edit" style="padding: 5px 8px; margin-left: 5px; text-decoration:none;">📞 Call</a>
                                     </td>
                                     <td>${u.gender}</td>
                                     <td>${u.batch}</td>
                                     <td>${u.plan}</td>
+                                    <td>${u.join_date}</td>
                                     <td>₹${u.amount}</td>
+                                    <td>${u.payment_method}</td>
                                     <td>
                                         <select name="status" style="background:#111; color:#fff; border:1px solid #333; padding:5px;">
                                             <option ${u.status === 'Active' ? 'selected' : ''}>Active</option>
                                             <option ${u.status === 'Pending' ? 'selected' : ''}>Pending</option>
                                         </select>
                                     </td>
-                                    <td>${u.expiry}</td>
                                     <td style="display:flex; gap:5px;">
                                         <button type="submit" class="btn-sm btn-edit">Save</button>
                                         <a href="/download_receipt/${u.id}" class="btn-sm btn-edit" target="_blank">PDF</a>
