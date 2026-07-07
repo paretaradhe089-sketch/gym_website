@@ -204,9 +204,6 @@
 
 
 
-
-
-
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, jsonify
 from models.database import get_db
 from datetime import datetime
@@ -339,11 +336,14 @@ def verify_payment():
                 'email': user.get('email'),
                 'plan': user.get('plan'),
                 'amount': user.get('amount'),
-                'transaction_id': razorpay_payment_id,
                 'order_id': razorpay_order_id,
+                'payment_id': razorpay_payment_id,
+                'transaction_id': razorpay_payment_id,
                 'payment_method': payment['method'],
                 'status': 'SUCCESS',
-                'date': datetime.now()
+                'date': datetime.now().strftime('%d %b %Y'),
+                'time': datetime.now().strftime('%I:%M %p'),
+                'receipt': f"SFZ{str(user_id)[-6:]}"
             }
             db.payments.insert_one(transaction)
             
@@ -362,7 +362,7 @@ def payment_success(user_id):
     user = db.users.find_one({'_id': ObjectId(user_id)})
     if not user: return redirect(url_for('main.index'))
     
-    wa_text = f"Hi Admin! I am {user['name']}. I have completed my online payment of ₹{user['amount']} for the {user['plan']} plan. My Registration ID is {str(user['_id'])[-8:]}. Please confirm."
+    wa_text = f"Hi Admin! I am {user['name']}. I have completed my online payment of ₹{user['amount']} for the {user['plan']} plan. My Reg ID is {str(user['_id'])[-8:]}."
     wa_link = f"https://wa.me/{config.ADMIN_WHATSAPP}?text={wa_text.replace(' ', '%20')}"
     
     return render_template('payment_success.html', user=user, wa_link=wa_link, reg_id=user_id)
@@ -381,6 +381,7 @@ def download_receipt(user_id):
     pdf.set_fill_color(17, 17, 17)
     pdf.rect(0, 0, 210, 297, 'F')
     
+    # Gym Logo / Header
     pdf.set_text_color(255, 212, 0)
     pdf.set_font("Arial", 'B', 28)
     pdf.cell(0, 15, "SFZ", 0, 1, 'C')
@@ -404,12 +405,13 @@ def download_receipt(user_id):
         ("Member ID", str(user['_id'])[-8:]),
         ("Membership Plan", user.get('plan', '')),
         ("Amount Paid", f"₹{user.get('amount', 0)}"),
-        ("Date", datetime.now().strftime('%d %b %Y')),
-        ("Time", datetime.now().strftime('%I:%M %p')),
-        ("Razorpay Payment ID", payment.get('transaction_id', 'N/A') if payment else 'N/A'),
+        ("Payment Date", payment.get('date', datetime.now().strftime('%d %b %Y')) if payment else datetime.now().strftime('%d %b %Y')),
+        ("Payment Time", payment.get('time', datetime.now().strftime('%I:%M %p')) if payment else datetime.now().strftime('%I:%M %p')),
+        ("Razorpay Order ID", payment.get('order_id', 'N/A') if payment else 'N/A'),
+        ("Razorpay Payment ID", payment.get('payment_id', 'N/A') if payment else 'N/A'),
         ("Transaction ID", payment.get('transaction_id', 'N/A') if payment else 'N/A'),
         ("Payment Method", payment.get('payment_method', 'N/A').upper() if payment else 'CASH'),
-        ("Payment Status", "SUCCESS"),
+        ("Payment Status", "SUCCESS" if payment else "PENDING")
     ]
     
     for label, value in data:
@@ -432,9 +434,9 @@ def download_receipt(user_id):
 
 @main_bp.route('/services')
 def services():
+    # Nutrition Guidance removed from here to prevent duplicate
     services_list = [
         {'icon': '🏋️', 'title': 'Strength Training', 'desc': 'Build raw power and muscle mass with progressive overload and expert guidance.', 'img': 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80', 'benefits': ['Increased Muscle Mass', 'Better Bone Density', 'Enhanced Metabolism', 'Improved Posture']},
-        {'icon': '🥗', 'title': 'Nutritional Guidance', 'desc': 'Custom diet plans tailored to your body goals for long-term health.', 'img': 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80', 'benefits': ['Personalized Diet Chart', 'Fat Loss Support', 'Muscle Gain Diet', 'Lifestyle Management']},
         {'icon': '🔥', 'title': 'Weight Loss', 'desc': 'High-intensity routines designed to shred fat fast and safely.', 'img': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80', 'benefits': ['Rapid Fat Burn', 'Increased Stamina', 'Core Strengthening', 'Boosted Confidence']},
         {'icon': '💪', 'title': 'Muscle Building', 'desc': 'Hypertrophy focused training protocols for maximum muscle growth.', 'img': 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=800&q=80', 'benefits': ['Targeted Muscle Growth', 'Strength Optimization', 'Supplement Guidance', 'Recovery Techniques']},
         {'icon': '🏃', 'title': 'Cardio Training', 'desc': 'Improve heart health and endurance with modern equipment.', 'img': 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?w=800&q=80', 'benefits': ['Heart Health', 'Lung Capacity', 'Endurance Boost', 'Stress Relief']},
