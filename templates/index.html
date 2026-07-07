@@ -84,7 +84,7 @@
         const isOnline = document.getElementById('online-radio').checked;
         
         if (isOnline) {
-            e.preventDefault(); // Stop normal form submit
+            e.preventDefault();
             
             const planSelect = document.getElementById('planSelect');
             const amount = planSelect.options[planSelect.selectedIndex].getAttribute('data-amount');
@@ -101,7 +101,6 @@
                 amount: amount
             };
 
-            // 1. Create Order on Backend
             fetch('/create_order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -110,7 +109,6 @@
             .then(res => res.json())
             .then(data => {
                 if(data.order_id) {
-                    // 2. Open Razorpay Checkout
                     var options = {
                         "key": "{{ razorpay_key_id }}",
                         "amount": data.amount,
@@ -119,7 +117,6 @@
                         "description": formData.plan + " Plan",
                         "order_id": data.order_id,
                         "handler": function (response){
-                            // 3. Verify Payment on Backend
                             fetch('/verify_payment', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
