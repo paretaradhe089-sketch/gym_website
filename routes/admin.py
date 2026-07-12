@@ -354,3 +354,6 @@ def delete_feedback(feedback_id):
     db.feedback.delete_one({'_id': ObjectId(feedback_id)})
     flash('🗑️ Feedback deleted!', 'success')
     return redirect(url_for('admin.dashboard') + '#feedbacks')
+
+
+
