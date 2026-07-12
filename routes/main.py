@@ -166,7 +166,6 @@ def download_receipt(user_id):
     pdf.set_fill_color(17, 17, 17)
     pdf.rect(0, 0, 210, 297, 'F')
     
-    # Gym Details Header
     pdf.set_text_color(255, 215, 0); pdf.set_font("Arial", 'B', 28); pdf.cell(0, 15, "SFZ", 0, 1, 'C')
     pdf.set_text_color(255, 255, 255); pdf.set_font("Arial", 'B', 14); pdf.cell(0, 10, "Spartan Fitness Zone", 0, 1, 'C')
     pdf.set_text_color(150, 150, 150); pdf.set_font("Arial", '', 10)
@@ -208,7 +207,8 @@ def services():
         {'icon': '🤼', 'title': 'CrossFit', 'desc': 'High-intensity functional movements.', 'img': 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80', 'benefits': ['Full Body Workout', 'Agility & Speed', 'Community Support', 'Functional Strength']},
         {'icon': '🧘', 'title': 'Yoga', 'desc': 'Improve flexibility, balance, and mental peace.', 'img': 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80', 'benefits': ['Flexibility', 'Mental Peace', 'Injury Prevention', 'Better Breathing']},
         {'icon': '🏃‍♂️', 'title': 'Functional Training', 'desc': 'Exercises that mimic daily activities.', 'img': 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=800&q=80', 'benefits': ['Real-world Strength', 'Balance Improvement', 'Core Stability', 'Mobility']},
-        {'icon': '👨‍🏫', 'title': 'Personal Training', 'desc': 'One-on-one coaching for targeted results.', 'img': 'https://images.unsplash.com/photo-1549049950-48d5887197a0?w=800&q=80', 'benefits': ['Customized Plan', 'Dedicated Attention', 'Faster Results', 'Form Correction']}
+        # Personal Training ki image update kar di gayi hai (aapki di gayi image)
+        {'icon': '👨‍🏫', 'title': 'Personal Training', 'desc': 'One-on-one coaching for targeted results.', 'img': 'https://z-cdn-media.chatglm.cn/files/67013b80-0819-4b84-b2f5-6c33af6d97c9.jpeg?auth_key=1883864928-480f72f92c4e49a4af6a728c8b3a86d9-0-a41eb0623c9cb12304a5c27a5aff36a7', 'benefits': ['Customized Plan', 'Dedicated Attention', 'Faster Results', 'Form Correction']}
     ]
     return render_template('services.html', services=services_list)
 
