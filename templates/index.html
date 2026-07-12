@@ -9,11 +9,8 @@
         <a href="tel:{{ gym_phone }}" class="btn-primary" style="display: inline-block; width: auto; padding: 15px 40px;">📞 Call Us Today</a>
     </div>
 
-    <!-- Dynamic Offer Banner -->
     {% if offer and offer.is_active %}
-    <div class="offer-banner">
-        {{ offer.text }}
-    </div>
+    <div class="offer-banner">{{ offer.text }}</div>
     {% endif %}
 
     <div class="content-grid" style="margin-top: 40px;">
@@ -26,7 +23,6 @@
                     <div class="fee-item"><span>6 Months</span> <span class="price">₹5000</span></div>
                     <div class="fee-item"><span>Yearly</span> <span class="price">₹8000</span></div>
                 </div>
-                
                 <div class="info-box">
                     <h3>📍 Location</h3>
                     <p>E9 - First Floor, Sharma Colony, Near Mangal Manch, Nandpuri, Jaipur, Rajasthan 302019</p>
@@ -39,14 +35,12 @@
             </div>
         </div>
 
-        <!-- Registration Form -->
         <div class="glass-card">
             <h2 class="section-heading">Registration Form</h2>
             <form id="registerForm" action="{{ url_for('main.register_cash') }}" method="POST">
                 <input type="text" name="name" id="name" placeholder="Full Name *" required>
                 <input type="email" name="email" id="email" placeholder="Email Address">
                 <input type="text" name="phone" id="phone" placeholder="Phone Number *" required pattern="[0-9]{10}">
-                
                 <div style="display:flex; gap:10px;">
                     <select name="gender" id="gender" required>
                         <option value="" disabled selected>Gender *</option>
@@ -59,13 +53,10 @@
                         <option value="Evening">Evening (4-10 PM)</option>
                     </select>
                 </div>
-                
                 <label style="font-size:12px; color:var(--yellow); margin-bottom:5px; display:block;">Select Joining Date *</label>
                 <input type="date" name="join_date" id="joinDate" required style="color-scheme: dark;">
-
                 <input type="text" name="address" id="address" placeholder="Address">
                 <textarea name="comment" id="comment" placeholder="Comment / Medical Issue (Optional)" rows="2"></textarea>
-                
                 <select name="plan" id="planSelect" required>
                     <option value="Monthly" data-amount="1200">Monthly (₹1200)</option>
                     <option value="Quarterly" data-amount="3000">Quarterly (₹3000)</option>
@@ -73,7 +64,6 @@
                     <option value="Yearly" data-amount="8000">Yearly (₹8000)</option>
                 </select>
 
-                <!-- Coupon System -->
                 <div class="coupon-box">
                     <input type="text" id="couponCode" placeholder="Enter Coupon Code">
                     <button type="button" id="applyCouponBtn" class="btn-sm btn-edit">Apply</button>
@@ -91,12 +81,15 @@
                     <label><input type="radio" name="payment_method" value="Online" id="online-radio"> Online</label>
                 </div>
 
+                <div id="qr-code-box" class="payment-box" style="display:none; text-align:center; margin-bottom:15px;">
+                    <h4 style="color:var(--yellow); margin-bottom:10px;">Scan & Pay via UPI</h4>
+                    <img id="qrImage" src="" alt="UPI QR Code" style="width:150px; height:150px; border-radius:8px; margin:0 auto;">
+                </div>
+
                 <button type="submit" class="btn-primary" id="submitBtn">
                     <span id="btnText">Register Now</span>
                     <div id="btnSpinner" class="spinner" style="display:none;"></div>
                 </button>
-                
-                <!-- Retry Payment Button (Hidden by default) -->
                 <button type="button" id="retryBtn" class="btn-primary" style="display:none; background:#e74c3c; margin-top:10px;">Retry Payment</button>
             </form>
         </div>
@@ -116,12 +109,11 @@
     const btnText = document.getElementById('btnText');
     const btnSpinner = document.getElementById('btnSpinner');
     const retryBtn = document.getElementById('retryBtn');
+    const qrBox = document.getElementById('qr-code-box');
+    const qrImage = document.getElementById('qrImage');
     
-    let discount = 0;
-    let finalAmount = 1200;
-    let lastFormData = null;
-    let lastOrderId = null;
-    let lastUserId = null;
+    let discount = 0, finalAmount = 1200, lastFormData = null, lastOrderId = null, lastUserId = null;
+    const upiId = "{{ upi_id }}";
 
     function updateSummary() {
         const amount = parseInt(planSelect.options[planSelect.selectedIndex].getAttribute('data-amount'));
@@ -129,28 +121,29 @@
         discountEl.innerText = `₹${discount}`;
         finalAmountEl.innerText = `₹${amount - discount}`;
         finalAmount = amount - discount;
+
+        if(onlineRadio.checked) {
+            qrBox.style.display = 'block';
+            const upiUrl = `upi://pay?pa=${upiId}&pn=Spartan Fitness Zone&am=${finalAmount}&cu=INR`;
+            qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiUrl)}`;
+        } else {
+            qrBox.style.display = 'none';
+        }
     }
 
     planSelect.addEventListener('change', () => { discount = 0; couponCode.value = ''; updateSummary(); });
+    onlineRadio.addEventListener('change', updateSummary);
+    document.querySelector('input[value="Cash"]').addEventListener('change', updateSummary);
 
     applyCouponBtn.addEventListener('click', () => {
         const code = couponCode.value.trim();
         if(!code) return;
         const amount = parseInt(planSelect.options[planSelect.selectedIndex].getAttribute('data-amount'));
-        fetch('/validate_coupon', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: code, amount: amount })
-        })
+        fetch('/validate_coupon', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: code, amount: amount }) })
         .then(res => res.json())
         .then(data => {
-            if(data.valid) {
-                discount = data.discount;
-                couponMsg.style.color = '#2ecc71';
-            } else {
-                discount = 0;
-                couponMsg.style.color = '#e74c3c';
-            }
+            if(data.valid) { discount = data.discount; couponMsg.style.color = '#2ecc71'; } 
+            else { discount = 0; couponMsg.style.color = '#e74c3c'; }
             couponMsg.innerText = data.message;
             updateSummary();
         });
@@ -158,104 +151,50 @@
 
     function openRazorpayCheckout(data, orderData) {
         var options = {
-            "key": "{{ razorpay_key_id }}",
-            "amount": orderData.amount,
-            "currency": "INR",
-            "name": "Spartan Fitness Zone",
-            "order_id": orderData.order_id,
+            "key": "{{ razorpay_key_id }}", "amount": orderData.amount, "currency": "INR",
+            "name": "Spartan Fitness Zone", "order_id": orderData.order_id,
             "handler": function (response){
-                fetch('/verify_payment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_order_id: response.razorpay_order_id,
-                        razorpay_signature: response.razorpay_signature,
-                        user_id: orderData.user_id
-                    })
+                fetch('/verify_payment', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ razorpay_payment_id: response.razorpay_payment_id, razorpay_order_id: response.razorpay_order_id, razorpay_signature: response.razorpay_signature, user_id: orderData.user_id })
                 })
                 .then(res => res.json())
                 .then(verifyData => {
-                    if(verifyData.status === 'success') {
-                        window.location.href = '/payment_success/' + verifyData.user_id;
-                    } else {
-                        alert('Payment Verification Failed!');
-                        resetBtn();
-                    }
+                    if(verifyData.status === 'success') { window.location.href = '/payment_success/' + verifyData.user_id; } 
+                    else { alert('Payment Verification Failed!'); resetBtn(); }
                 });
             },
-            "prefill": { "name": data.name, "contact": data.phone, "email": data.email },
-            "theme": { "color": "#FFD400" }
+            "prefill": { "name": data.name, "contact": data.phone, "email": data.email }, "theme": { "color": "#FFD400" }
         };
         var rzp1 = new Razorpay(options);
-        rzp1.on('payment.failed', function (resp){
-            alert('Payment Failed: ' + resp.error.description);
-            retryBtn.style.display = 'block'; // Show Retry Button
-            resetBtn();
-        });
+        rzp1.on('payment.failed', function (resp){ alert('Payment Failed: ' + resp.error.description); retryBtn.style.display = 'block'; resetBtn(); });
         rzp1.open();
     }
 
-    function resetBtn() {
-        submitBtn.disabled = false;
-        btnText.innerText = 'Register Now';
-        btnSpinner.style.display = 'none';
-    }
+    function resetBtn() { submitBtn.disabled = false; btnText.innerText = 'Register Now'; btnSpinner.style.display = 'none'; }
 
     document.getElementById('registerForm').addEventListener('submit', function(e) {
         const isOnline = document.getElementById('online-radio').checked;
-        
         if (isOnline) {
-            e.preventDefault();
-            submitBtn.disabled = true;
-            btnText.innerText = 'Processing...';
-            btnSpinner.style.display = 'inline-block';
-            retryBtn.style.display = 'none';
-
+            e.preventDefault(); submitBtn.disabled = true; btnText.innerText = 'Processing...'; btnSpinner.style.display = 'inline-block'; retryBtn.style.display = 'none';
             lastFormData = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                gender: document.getElementById('gender').value,
-                batch: document.getElementById('batch').value,
-                join_date: document.getElementById('joinDate').value,
-                address: document.getElementById('address').value,
-                comment: document.getElementById('comment').value,
-                plan: planSelect.value,
-                amount: parseInt(planSelect.options[planSelect.selectedIndex].getAttribute('data-amount')),
-                discount: discount,
-                final_amount: finalAmount,
-                coupon_code: couponCode.value
+                name: document.getElementById('name').value, email: document.getElementById('email').value, phone: document.getElementById('phone').value,
+                gender: document.getElementById('gender').value, batch: document.getElementById('batch').value, join_date: document.getElementById('joinDate').value,
+                address: document.getElementById('address').value, comment: document.getElementById('comment').value, plan: planSelect.value,
+                amount: parseInt(planSelect.options[planSelect.selectedIndex].getAttribute('data-amount')), discount: discount, final_amount: finalAmount, coupon_code: couponCode.value
             };
-
-            fetch('/create_order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(lastFormData)
-            })
+            fetch('/create_order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lastFormData) })
             .then(res => res.json())
             .then(data => {
-                if(data.error) {
-                    alert(data.error);
-                    resetBtn();
-                    return;
-                }
-                lastOrderId = data.order_id;
-                lastUserId = data.user_id;
+                if(data.error) { alert(data.error); resetBtn(); return; }
+                lastOrderId = data.order_id; lastUserId = data.user_id;
                 openRazorpayCheckout(lastFormData, data);
             });
         }
     });
 
-    // Retry Payment Logic
     retryBtn.addEventListener('click', function() {
         if(lastOrderId && lastUserId) {
-            submitBtn.disabled = true;
-            btnText.innerText = 'Processing...';
-            btnSpinner.style.display = 'inline-block';
-            retryBtn.style.display = 'none';
-            
-            // Re-open Razorpay with the same order ID
+            submitBtn.disabled = true; btnText.innerText = 'Processing...'; btnSpinner.style.display = 'inline-block'; retryBtn.style.display = 'none';
             openRazorpayCheckout(lastFormData, {order_id: lastOrderId, user_id: lastUserId, amount: finalAmount * 100});
         }
     });
