@@ -27,10 +27,12 @@
                     <th>Phone</th>
                     <th>Email</th>
                     <th>Plan</th>
-                    <th>Amount</th>
-                    <th>Order ID</th>
-                    <th>Payment ID</th>
+                    <th>Original Amt</th>
+                    <th>Discount</th>
+                    <th>Paid Amt</th>
+                    <th>Coupon</th>
                     <th>Transaction ID</th>
+                    <th>Order ID</th>
                     <th>Method</th>
                     <th>Status</th>
                     <th>Date</th>
@@ -45,10 +47,12 @@
                     <td>{{ p.phone }}</td>
                     <td>{{ p.email }}</td>
                     <td>{{ p.plan }}</td>
-                    <td>₹{{ p.amount }}</td>
-                    <td style="font-size:10px;">{{ p.order_id }}</td>
-                    <td style="font-size:10px;">{{ p.payment_id }}</td>
+                    <td>₹{{ p.original_amount }}</td>
+                    <td>₹{{ p.discount }}</td>
+                    <td>₹{{ p.amount_paid }}</td>
+                    <td>{{ p.coupon_used or 'N/A' }}</td>
                     <td style="font-size:10px;">{{ p.transaction_id }}</td>
+                    <td style="font-size:10px;">{{ p.order_id }}</td>
                     <td>{{ p.payment_method|upper }}</td>
                     <td style="color: #2ecc71; font-weight:bold;">{{ p.status }}</td>
                     <td>{{ p.date }}</td>
@@ -58,7 +62,7 @@
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="13" style="text-align:center; color:#888;">No online transactions yet.</td></tr>
+                <tr><td colspan="15" style="text-align:center; color:#888;">No online transactions yet.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
