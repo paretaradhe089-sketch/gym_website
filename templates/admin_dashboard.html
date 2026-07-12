@@ -9,128 +9,165 @@
 </head>
 <body>
 
-    <div class="admin-nav">
-        <h1 style="font-family:'Oswald';">SFZ Admin Panel</h1>
-        <div>
-            <a href="{{ url_for('main.index') }}" style="font-size:14px; margin-right:15px;">View Site</a>
-            <a href="{{ url_for('admin.transactions') }}" style="font-size:14px; margin-right:15px; color:var(--yellow);">💳 Transactions</a>
-            <a href="{{ url_for('admin.admin_logout') }}" class="btn-admin">Logout</a>
-        </div>
+<div class="admin-nav">
+    <h1 style="font-family:'Oswald';">SFZ Admin Panel</h1>
+    <div>
+        <a href="{{ url_for('main.index') }}" style="font-size:14px; margin-right:15px;">View Site</a>
+        <a href="{{ url_for('admin.transactions') }}" style="font-size:14px; margin-right:15px; color:var(--yellow);">💳 Transactions</a>
+        <a href="{{ url_for('admin.admin_logout') }}" class="btn-admin">Logout</a>
+    </div>
+</div>
+
+<div class="section">
+    <!-- New Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card"><h3>{{ today_regs }}</h3><p>Today's Regs</p></div>
+        <div class="stat-card"><h3>₹{{ today_revenue }}</h3><p>Today's Revenue</p></div>
+        <div class="stat-card"><h3>₹{{ monthly_revenue }}</h3><p>Monthly Revenue</p></div>
+        <div class="stat-card"><h3>{{ pending_payments }}</h3><p>Pending Payments</p></div>
+        <div class="stat-card"><h3>{{ completed_payments }}</h3><p>Completed Payments</p></div>
+        <div class="stat-card"><h3>{{ active_users }}</h3><p>Active Members</p></div>
+        <div class="stat-card"><h3>{{ pending_users }}</h3><p>Pending Users</p></div>
+        <div class="stat-card"><h3>{{ total_users }}</h3><p>Total Members</p></div>
     </div>
 
-    <div class="section">
-        <div class="stats-grid">
-            <div class="stat-card"><h3>₹{{ total_payment }}</h3><p>Monthly Payment</p></div>
-            <div class="stat-card"><h3>{{ pending_users }}</h3><p>Pending Users</p></div>
-            <div class="stat-card"><h3>{{ active_users }}</h3><p>Active Users</p></div>
-            <div class="stat-card"><h3>{{ total_users }}</h3><p>Total Members</p></div>
-        </div>
-
-        <div class="admin-card">
-            <h2>👥 Registered Members</h2>
-            <div class="search-bar" style="margin-bottom:20px;">
-                <input type="text" id="searchInput" placeholder="Type Phone Number to search instantly..." style="width:100%;">
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Phone</th>
-                        <th>Gender</th>
-                        <th>Batch</th>
-                        <th>Plan</th>
-                        <th>Join Date</th>
-                        <th>Amount</th>
-                        <th>Pay Mode</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="userTableBody"></tbody>
-            </table>
-        </div>
-
-        <div class="admin-card" id="feedbacks">
-            <h2>💬 User Feedbacks</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Message</th>
-                        <th>Date</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for f in feedbacks %}
-                    <tr>
-                        <td>{{ f.name }}</td>
-                        <td>{{ f.email }}</td>
-                        <td>{{ f.message }}</td>
-                        <td>{{ f.created_at.strftime('%d %b') }}</td>
-                        <td><a href="{{ url_for('admin.delete_feedback', feedback_id=f._id) }}" class="btn-sm btn-del">Delete</a></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <!-- Latest Transactions -->
+    <div class="admin-card">
+        <h2>💸 Latest Transactions</h2>
+        <table>
+            <thead><tr><th>Name</th><th>Amount</th><th>Plan</th><th>Coupon</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+                {% for p in payments %}
+                <tr>
+                    <td>{{ p.name }}</td>
+                    <td>₹{{ p.amount_paid }}</td>
+                    <td>{{ p.plan }}</td>
+                    <td>{{ p.coupon_used or 'N/A' }}</td>
+                    <td style="color: #2ecc71;">{{ p.status }}</td>
+                    <td>{{ p.date }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" style="text-align:center; color:#888;">No transactions yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
-    <script>
-        const searchInput = document.getElementById('searchInput');
-        const tableBody = document.getElementById('userTableBody');
+    <!-- Coupon Creator -->
+    <div class="admin-card" id="coupons">
+        <h2>🎟️ Coupon Management</h2>
+        <form method="POST" action="{{ url_for('admin.add_coupon') }}" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+            <input type="text" name="code" placeholder="Coupon Code (e.g. DIWALI)" required style="margin:0;">
+            <select name="type" style="margin:0;">
+                <option value="percentage">Percentage (%)</option>
+                <option value="flat">Flat (₹)</option>
+            </select>
+            <input type="number" name="value" placeholder="Value (e.g. 10 or 500)" required style="margin:0;">
+            <input type="number" name="max_discount" placeholder="Max Discount (₹)" style="margin:0;">
+            <input type="number" name="min_amount" placeholder="Min Amount (₹)" style="margin:0;">
+            <input type="date" name="expiry_date" required style="margin:0; color-scheme: dark;">
+            <input type="number" name="max_uses" placeholder="Max Uses" style="margin:0;">
+            <input type="text" name="description" placeholder="Description" style="margin:0;">
+            <button type="submit" class="btn-sm btn-edit" style="padding: 12px;">Add Coupon</button>
+        </form>
+        
+        <table>
+            <thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Uses</th><th>Expiry</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for c in coupons %}
+                <tr>
+                    <td>{{ c.code }}</td>
+                    <td>{{ c.type }}</td>
+                    <td>{{ c.value }}{% if c.type == 'percentage' %}%{% else %}₹{% endif %}</td>
+                    <td>{{ c.current_uses }}/{{ c.max_uses }}</td>
+                    <td>{{ c.expiry_date }}</td>
+                    <td>{% if c.is_active %}Active{% else %}Inactive{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-        function fetchUsers(query = '') {
-            fetch(`{{ url_for('admin.search_api') }}?q=${query}`)
-                .then(res => res.json())
-                .then(data => {
-                    tableBody.innerHTML = '';
-                    if (data.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:#888;">No users found.</td></tr>';
-                        return;
-                    }
-                    data.forEach(u => {
-                        tableBody.innerHTML += `
-                            <tr>
-                                <form method="POST" action="/admin/edit/${u.id}">
-                                    <td>
-                                        <input type="text" name="name" value="${u.name}" style="background:transparent; border:none; color:#fff; width:100px;">
-                                    </td>
-                                    <td style="white-space: nowrap;">
-                                        <input type="text" name="phone" value="${u.phone}" style="background:transparent; border:none; color:#fff; width:80px; display:inline-block;">
-                                        <a href="tel:${u.phone}" class="btn-sm btn-edit" style="padding: 5px 8px; margin-left: 5px; text-decoration:none;">📞 Call</a>
-                                    </td>
-                                    <td>${u.gender}</td>
-                                    <td>${u.batch}</td>
-                                    <td>${u.plan}</td>
-                                    <td>${u.join_date}</td>
-                                    <td>₹${u.amount}</td>
-                                    <td>${u.payment_method}</td>
-                                    <td>
-                                        <select name="status" style="background:#111; color:#fff; border:1px solid #333; padding:5px;">
-                                            <option ${u.status === 'Active' ? 'selected' : ''}>Active</option>
-                                            <option ${u.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                                        </select>
-                                    </td>
-                                    <td style="display:flex; gap:5px;">
-                                        <button type="submit" class="btn-sm btn-edit">Save</button>
-                                        <a href="/download_receipt/${u.id}" class="btn-sm btn-edit" target="_blank">PDF</a>
-                                        <a href="/admin/delete/${u.id}" class="btn-sm btn-del" onclick="return confirm('Delete user?')">Del</a>
-                                    </td>
-                                </form>
-                            </tr>
-                        `;
-                    });
+    <!-- Registered Members -->
+    <div class="admin-card">
+        <h2>👥 Registered Members (Live Search)</h2>
+        <div class="search-bar" style="margin-bottom:20px;">
+            <input type="text" id="searchInput" placeholder="Type Phone Number to search instantly..." style="width:100%;">
+        </div>
+
+        <table>
+            <thead>
+                <tr><th>Name</th><th>Phone</th><th>Gender</th><th>Batch</th><th>Plan</th><th>Join Date</th><th>Amount</th><th>Pay Mode</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="userTableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="admin-card" id="feedbacks">
+        <h2>💬 User Feedbacks</h2>
+        <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Message</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody>
+                {% for f in feedbacks %}
+                <tr>
+                    <td>{{ f.name }}</td><td>{{ f.email }}</td><td>{{ f.message }}</td>
+                    <td>{{ f.created_at.strftime('%d %b') }}</td>
+                    <td><a href="{{ url_for('admin.delete_feedback', feedback_id=f._id) }}" class="btn-sm btn-del">Delete</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.getElementById('userTableBody');
+
+    function fetchUsers(query = '') {
+        fetch(`{{ url_for('admin.search_api') }}?q=${query}`)
+            .then(res => res.json())
+            .then(data => {
+                tableBody.innerHTML = '';
+                if(data.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:#888;">No users found.</td></tr>';
+                    return;
+                }
+                data.forEach(u => {
+                    tableBody.innerHTML += `
+                        <tr>
+                            <form method="POST" action="/admin/edit/${u.id}">
+                                <td><input type="text" name="name" value="${u.name}" style="background:transparent; border:none; color:#fff; width:100px;"></td>
+                                <td style="white-space: nowrap;">
+                                    <input type="text" name="phone" value="${u.phone}" style="background:transparent; border:none; color:#fff; width:80px; display:inline-block;">
+                                    <a href="tel:${u.phone}" class="btn-sm btn-edit" style="padding: 5px 8px; margin-left: 5px; text-decoration:none;">📞 Call</a>
+                                </td>
+                                <td>${u.gender}</td>
+                                <td>${u.batch}</td>
+                                <td>${u.plan}</td>
+                                <td>${u.join_date}</td>
+                                <td>₹${u.amount}</td>
+                                <td>${u.payment_method}</td>
+                                <td>
+                                    <select name="status" style="background:#111; color:#fff; border:1px solid #333; padding:5px;">
+                                        <option ${u.status === 'Active' ? 'selected' : ''}>Active</option>
+                                        <option ${u.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                    </select>
+                                </td>
+                                <td style="display:flex; gap:5px;">
+                                    <button type="submit" class="btn-sm btn-edit">Save</button>
+                                    <a href="/download_receipt/${u.id}" class="btn-sm btn-edit" target="_blank">PDF</a>
+                                    <a href="/admin/delete/${u.id}" class="btn-sm btn-del" onclick="return confirm('Delete user?')">Del</a>
+                                </td>
+                            </form>
+                        </tr>
+                    `;
                 });
-        }
+            });
+    }
 
-        fetchUsers();
-        searchInput.addEventListener('input', function () {
-            fetchUsers(this.value);
-        });
-    </script>
-
+    fetchUsers();
+    searchInput.addEventListener('input', function() { fetchUsers(this.value); });
+</script>
 </body>
 </html>
