@@ -3,6 +3,7 @@
 
 {% block content %}
 <div class="home-container">
+    <!-- Hero Banner -->
     <div class="hero-banner">
         <h1>SPARTAN FITNESS ZONE</h1>
         <p>Transform Your Body, Transform Your Life.</p>
@@ -13,7 +14,10 @@
     <div class="offer-banner">{{ offer.text }}</div>
     {% endif %}
 
+    <!-- Original Grid Layout (Fee Structure Left, Form Right) -->
     <div class="content-grid" style="margin-top: 40px;">
+        
+        <!-- Left Column: Fee Structure & Info -->
         <div>
             <div class="glass-card">
                 <h2 class="section-heading">Fee Structure</h2>
@@ -23,6 +27,7 @@
                     <div class="fee-item"><span>6 Months</span> <span class="price">₹5000</span></div>
                     <div class="fee-item"><span>Yearly</span> <span class="price">₹8000</span></div>
                 </div>
+                
                 <div class="info-box">
                     <h3>📍 Location</h3>
                     <p>E9 - First Floor, Sharma Colony, Near Mangal Manch, Nandpuri, Jaipur, Rajasthan 302019</p>
@@ -35,12 +40,14 @@
             </div>
         </div>
 
+        <!-- Right Column: Registration Form -->
         <div class="glass-card">
             <h2 class="section-heading">Registration Form</h2>
             <form id="registerForm" action="{{ url_for('main.register_cash') }}" method="POST">
                 <input type="text" name="name" id="name" placeholder="Full Name *" required>
                 <input type="email" name="email" id="email" placeholder="Email Address">
                 <input type="text" name="phone" id="phone" placeholder="Phone Number *" required pattern="[0-9]{10}">
+                
                 <div style="display:flex; gap:10px;">
                     <select name="gender" id="gender" required>
                         <option value="" disabled selected>Gender *</option>
@@ -53,10 +60,13 @@
                         <option value="Evening">Evening (4-10 PM)</option>
                     </select>
                 </div>
+                
                 <label style="font-size:12px; color:var(--yellow); margin-bottom:5px; display:block;">Select Joining Date *</label>
                 <input type="date" name="join_date" id="joinDate" required style="color-scheme: dark;">
+
                 <input type="text" name="address" id="address" placeholder="Address">
                 <textarea name="comment" id="comment" placeholder="Comment / Medical Issue (Optional)" rows="2"></textarea>
+                
                 <select name="plan" id="planSelect" required>
                     <option value="Monthly" data-amount="1200">Monthly (₹1200)</option>
                     <option value="Quarterly" data-amount="3000">Quarterly (₹3000)</option>
@@ -64,6 +74,7 @@
                     <option value="Yearly" data-amount="8000">Yearly (₹8000)</option>
                 </select>
 
+                <!-- Coupon System -->
                 <div class="coupon-box">
                     <input type="text" id="couponCode" placeholder="Enter Coupon Code">
                     <button type="button" id="applyCouponBtn" class="btn-sm btn-edit">Apply</button>
@@ -81,6 +92,7 @@
                     <label><input type="radio" name="payment_method" value="Online" id="online-radio"> Online</label>
                 </div>
 
+                <!-- QR Code Box -->
                 <div id="qr-code-box" class="payment-box" style="display:none; text-align:center; margin-bottom:15px;">
                     <h4 style="color:var(--yellow); margin-bottom:10px;">Scan & Pay via UPI</h4>
                     <img id="qrImage" src="" alt="UPI QR Code" style="width:150px; height:150px; border-radius:8px; margin:0 auto;">
