@@ -23,7 +23,7 @@ def init_db():
             db.coupons.insert_many([
                 {'code': 'WELCOME10', 'type': 'percentage', 'value': 10, 'max_discount': 500, 'min_amount': 1000, 'expiry_date': '2033-12-31', 'max_uses': 100, 'current_uses': 0, 'is_active': True, 'description': '10% Off on plans above 1000'},
                 {'code': 'GYM500', 'type': 'flat', 'value': 500, 'max_discount': 500, 'min_amount': 5000, 'expiry_date': '2033-12-31', 'max_uses': 50, 'current_uses': 0, 'is_active': True, 'description': 'Flat 500 Off on Yearly Plan'},
-                {'code': 'NEWUSER', 'type': 'percentage', 'value': 15, 'max_discount': 1000, 'min_amount': 1200, 'expiry_date': '2030-12-31', 'max_uses': 100, 'current_uses': 0, 'is_active': True, 'description': '15% Off for new users'}
+                {'code': 'NEWUSER', 'type': 'percentage', 'value': 15, 'max_discount': 1000, 'min_amount': 1200, 'expiry_date': '2033-12-31', 'max_uses': 100, 'current_uses': 0, 'is_active': True, 'description': '15% Off for new users'}
             ])
             print("✅ Default Coupons Added!")
             
