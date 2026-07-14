@@ -8,8 +8,6 @@
         <img src="https://z-cdn-media.chatglm.cn/files/340bcaa4-83d9-4dd9-9812-a43cc7a9860a.jpeg?auth_key=1883997845-5e436b6afffb491981fa5de2d70c6783-0-79ed01c3e24e7c80ee17dfce1c4d5e56" alt="Spartan Fitness Zone Banner" style="width: 100%; border-radius: 12px; border: 1px solid #333; display: block;">
     </div>
 
-    <!-- Offer Banner Yahan Se Hata Diya Gaya Hai -->
-
     <div class="content-grid" style="margin-top: 40px;">
         <div>
             <div class="glass-card">
@@ -32,7 +30,8 @@
             </div>
         </div>
 
-        <div class="glass-card">
+        <!-- Yahan id="register" add kiya hai link ke liye -->
+        <div class="glass-card" id="register">
             <h2 class="section-heading">Registration Form</h2>
             <form id="registerForm" action="{{ url_for('main.register_cash') }}" method="POST">
                 <input type="text" name="name" id="name" placeholder="Full Name *" required>
@@ -61,7 +60,7 @@
                     <option value="Yearly" data-amount="8000">Yearly (₹8000)</option>
                 </select>
 
-                <!-- Coupon System (Yahan waise hi rahega jaise aapne kaha) -->
+                <!-- Coupon System -->
                 <div class="coupon-box">
                     <input type="text" id="couponCode" placeholder="Enter Coupon Code">
                     <button type="button" id="applyCouponBtn" class="btn-sm btn-edit">Apply</button>
