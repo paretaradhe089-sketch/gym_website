@@ -149,14 +149,15 @@
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, Response
 from models.database import get_db
-from config import ADMIN_PASSWORD
+from config import ADMIN_PASSWORD, MAIL_EMAIL, MAIL_PASSWORD
 from datetime import datetime, timedelta
 from functools import wraps
 from bson import ObjectId
 import csv
 import io
-# Importing send_admin_email from main.py
-from routes.main import send_admin_email
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -167,6 +168,26 @@ def admin_required(f):
             return redirect(url_for('admin.admin_login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# === EMAIL FUNCTION (Directly defined here to avoid import errors) ===
+def send_admin_email(subject, body):
+    if not MAIL_EMAIL or not MAIL_PASSWORD: return False
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = MAIL_EMAIL
+    msg['To'] = MAIL_EMAIL
+    part = MIMEText(body, 'html')
+    msg.attach(part)
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(MAIL_EMAIL, MAIL_PASSWORD)
+        server.sendmail(MAIL_EMAIL, MAIL_EMAIL, msg.as_string())
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"Email Error: {e}")
+        return False
 
 # === APSCHEDULER FUNCTION (Runs Daily at 9 AM) ===
 def check_expired_users():
@@ -194,7 +215,7 @@ def check_expired_users():
                 db.notifications.insert_one({
                     'name': user.get('name', ''),
                     'phone': user.get('phone', ''),
-                    'shift': user.get('batch', 'N/A'), # Shift (Morning/Evening)
+                    'shift': user.get('batch', 'N/A'),
                     'type': 'EXPIRED',
                     'expiry_date': expiry,
                     'status': 'pending',
