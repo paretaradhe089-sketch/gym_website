@@ -76,8 +76,18 @@
 # @admin_required
 # def transactions():
 #     db = get_db()
-#     payments = list(db.payments.find().sort('date', -1))
-#     return render_template('admin_transactions.html', payments=payments)
+#     q = request.args.get('q', '')
+#     query = {}
+#     if q:
+#         query = {
+#             '$or': [
+#                 {'name': {'$regex': q, '$options': 'i'}},
+#                 {'receipt': {'$regex': q, '$options': 'i'}},
+#                 {'transaction_id': {'$regex': q, '$options': 'i'}}
+#             ]
+#         }
+#     payments = list(db.payments.find(query).sort('date', -1))
+#     return render_template('admin_transactions.html', payments=payments, q=q)
 
 # @admin_bp.route('/admin/export_csv')
 # @admin_required
@@ -131,13 +141,6 @@
 #     db.feedback.delete_one({'_id': ObjectId(feedback_id)})
 #     flash('🗑️ Feedback deleted!', 'success')
 #     return redirect(url_for('admin.dashboard') + '#feedbacks')
-
-
-
-
-
-
-
 
 
 
