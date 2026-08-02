@@ -74,13 +74,8 @@
                 </div>
 
                 <div class="payment-option" style="display:flex; gap:20px; margin-bottom:15px;">
-                    <label><input type="radio" name="payment_method" value="Cash" checked> Cash</label>
-                    <label><input type="radio" name="payment_method" value="Online" id="online-radio"> Online</label>
-                </div>
-
-                <div id="qr-code-box" class="payment-box" style="display:none; text-align:center; margin-bottom:15px;">
-                    <h4 style="color:var(--yellow); margin-bottom:10px;">Scan & Pay via UPI</h4>
-                    <img id="qrImage" src="" alt="UPI QR Code" style="width:150px; height:150px; border-radius:8px; margin:0 auto;">
+                    <label><input type="radio" name="payment_method" value="Cash" checked> Cash (Pay at Gym)</label>
+                    <label><input type="radio" name="payment_method" value="Online" id="online-radio"> Online (UPI/Card)</label>
                 </div>
 
                 <button type="submit" class="btn-primary" id="submitBtn">
@@ -106,11 +101,8 @@
     const btnText = document.getElementById('btnText');
     const btnSpinner = document.getElementById('btnSpinner');
     const retryBtn = document.getElementById('retryBtn');
-    const qrBox = document.getElementById('qr-code-box');
-    const qrImage = document.getElementById('qrImage');
     
     let discount = 0, finalAmount = 1200, lastFormData = null, lastOrderId = null, lastUserId = null;
-    const upiId = "{{ upi_id }}";
 
     function updateSummary() {
         const amount = parseInt(planSelect.options[planSelect.selectedIndex].getAttribute('data-amount'));
@@ -118,19 +110,9 @@
         discountEl.innerText = `₹${discount}`;
         finalAmountEl.innerText = `₹${amount - discount}`;
         finalAmount = amount - discount;
-
-        if(onlineRadio.checked) {
-            qrBox.style.display = 'block';
-            const upiUrl = `upi://pay?pa=${upiId}&pn=Spartan Fitness Zone&am=${finalAmount}&cu=INR`;
-            qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiUrl)}`;
-        } else {
-            qrBox.style.display = 'none';
-        }
     }
 
     planSelect.addEventListener('change', () => { discount = 0; couponCode.value = ''; updateSummary(); });
-    onlineRadio.addEventListener('change', updateSummary);
-    document.querySelector('input[value="Cash"]').addEventListener('change', updateSummary);
 
     applyCouponBtn.addEventListener('click', () => {
         const code = couponCode.value.trim();
@@ -148,8 +130,12 @@
 
     function openRazorpayCheckout(data, orderData) {
         var options = {
-            "key": "{{ razorpay_key_id }}", "amount": orderData.amount, "currency": "INR",
-            "name": "Spartan Fitness Zone", "order_id": orderData.order_id,
+            "key": "{{ razorpay_key_id }}", // Yahan se Razorpay popup khulta hai
+            "amount": orderData.amount, 
+            "currency": "INR",
+            "name": "Spartan Fitness Zone",
+            "description": data.plan + " Plan",
+            "order_id": orderData.order_id,
             "handler": function (response){
                 fetch('/verify_payment', { method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ razorpay_payment_id: response.razorpay_payment_id, razorpay_order_id: response.razorpay_order_id, razorpay_signature: response.razorpay_signature, user_id: orderData.user_id })
@@ -160,7 +146,8 @@
                     else { alert('Payment Verification Failed!'); resetBtn(); }
                 });
             },
-            "prefill": { "name": data.name, "contact": data.phone, "email": data.email }, "theme": { "color": "#FFD400" }
+            "prefill": { "name": data.name, "contact": data.phone, "email": data.email }, 
+            "theme": { "color": "#FFD400" }
         };
         var rzp1 = new Razorpay(options);
         rzp1.on('payment.failed', function (resp){ alert('Payment Failed: ' + resp.error.description); retryBtn.style.display = 'block'; resetBtn(); });
@@ -172,19 +159,30 @@
     document.getElementById('registerForm').addEventListener('submit', function(e) {
         const isOnline = document.getElementById('online-radio').checked;
         if (isOnline) {
-            e.preventDefault(); submitBtn.disabled = true; btnText.innerText = 'Processing...'; btnSpinner.style.display = 'inline-block'; retryBtn.style.display = 'none';
+            e.preventDefault(); 
+            submitBtn.disabled = true; 
+            btnText.innerText = 'Opening Payment...'; 
+            btnSpinner.style.display = 'inline-block'; 
+            retryBtn.style.display = 'none';
+            
             lastFormData = {
                 name: document.getElementById('name').value, email: document.getElementById('email').value, phone: document.getElementById('phone').value,
                 gender: document.getElementById('gender').value, batch: document.getElementById('batch').value, join_date: document.getElementById('joinDate').value,
                 address: document.getElementById('address').value, comment: document.getElementById('comment').value, plan: planSelect.value,
                 amount: parseInt(planSelect.options[planSelect.selectedIndex].getAttribute('data-amount')), discount: discount, final_amount: finalAmount, coupon_code: couponCode.value
             };
+            
             fetch('/create_order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lastFormData) })
             .then(res => res.json())
             .then(data => {
                 if(data.error) { alert(data.error); resetBtn(); return; }
-                lastOrderId = data.order_id; lastUserId = data.user_id;
-                openRazorpayCheckout(lastFormData, data);
+                lastOrderId = data.order_id; 
+                lastUserId = data.user_id;
+                openRazorpayCheckout(lastFormData, data); // Flipkart wala popup yahan khulega
+            })
+            .catch(err => {
+                alert('Server Error. Check Razorpay Keys in Render.');
+                resetBtn();
             });
         }
     });
