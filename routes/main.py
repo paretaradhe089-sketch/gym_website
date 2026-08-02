@@ -1,9 +1,6 @@
 # from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, jsonify
 # from models.database import get_db
 # from datetime import datetime
-# import smtplib
-# from email.mime.text import MIMEText
-# from email.mime.multipart import MIMEMultipart
 # from fpdf import FPDF
 # import io
 # import config
@@ -207,7 +204,6 @@
 #         {'icon': '🤼', 'title': 'CrossFit', 'desc': 'High-intensity functional movements.', 'img': 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80', 'benefits': ['Full Body Workout', 'Agility & Speed', 'Community Support', 'Functional Strength']},
 #         {'icon': '🧘', 'title': 'Yoga', 'desc': 'Improve flexibility, balance, and mental peace.', 'img': 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80', 'benefits': ['Flexibility', 'Mental Peace', 'Injury Prevention', 'Better Breathing']},
 #         {'icon': '🏃‍♂️', 'title': 'Functional Training', 'desc': 'Exercises that mimic daily activities.', 'img': 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=800&q=80', 'benefits': ['Real-world Strength', 'Balance Improvement', 'Core Stability', 'Mobility']},
-#         # Personal Training ki image update kar di gayi hai (aapki di gayi image)
 #         {'icon': '👨‍🏫', 'title': 'Personal Training', 'desc': 'One-on-one coaching for targeted results.', 'img': 'https://z-cdn-media.chatglm.cn/files/67013b80-0819-4b84-b2f5-6c33af6d97c9.jpeg?auth_key=1883864928-480f72f92c4e49a4af6a728c8b3a86d9-0-a41eb0623c9cb12304a5c27a5aff36a7', 'benefits': ['Customized Plan', 'Dedicated Attention', 'Faster Results', 'Form Correction']}
 #     ]
 #     return render_template('services.html', services=services_list)
@@ -231,17 +227,13 @@
 
 
 
-
-
-
-
-
-
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, jsonify
 from models.database import get_db
 from datetime import datetime
 from fpdf import FPDF
 import io
+import urllib.request
+import qrcode
 import config
 import razorpay
 
@@ -253,6 +245,14 @@ def add_months(source_date, months):
     new_year = source_date.year + new_month // 12
     new_month = new_month % 12 + 1
     return datetime(new_year, new_month, source_date.day)
+
+def get_upi_app(vpa):
+    if not vpa: return "N/A"
+    if '@ybl' in vpa or '@apl' in vpa: return 'PhonePe'
+    if '@ok' in vpa or '@oksbi' in vpa: return 'Google Pay'
+    if '@paytm' in vpa: return 'Paytm'
+    if '@ibl' in vpa or '@upi' in vpa: return 'BHIM UPI'
+    return 'UPI'
 
 @main_bp.route('/')
 def index():
@@ -269,12 +269,9 @@ def validate_coupon():
     db = get_db()
     coupon = db.coupons.find_one({'code': code, 'is_active': True})
     
-    if not coupon:
-        return jsonify({'valid': False, 'message': 'Invalid Coupon Code.'})
-    if datetime.strptime(coupon['expiry_date'], '%Y-%m-%d') < datetime.now():
-        return jsonify({'valid': False, 'message': 'Coupon expired.'})
-    if amount < coupon.get('min_amount', 0):
-        return jsonify({'valid': False, 'message': f'Min amount ₹{coupon["min_amount"]} required.'})
+    if not coupon: return jsonify({'valid': False, 'message': 'Invalid Coupon Code.'})
+    if datetime.strptime(coupon['expiry_date'], '%Y-%m-%d') < datetime.now(): return jsonify({'valid': False, 'message': 'Coupon expired.'})
+    if amount < coupon.get('min_amount', 0): return jsonify({'valid': False, 'message': f'Min amount ₹{coupon["min_amount"]} required.'})
         
     if coupon['type'] == 'percentage':
         discount = (amount * coupon['value']) / 100
@@ -290,8 +287,7 @@ def create_order():
     amount = int(data.get('final_amount', data.get('amount', 1200))) * 100
     db = get_db()
     
-    if db.users.find_one({'phone': data.get('phone')}):
-        return jsonify({'error': 'Phone number already registered!'})
+    if db.users.find_one({'phone': data.get('phone')}): return jsonify({'error': 'Phone number already registered!'})
         
     join_date = datetime.strptime(data.get('join_date'), '%Y-%m-%d') if data.get('join_date') else datetime.now()
     user_data = {
@@ -368,7 +364,8 @@ def verify_payment():
                 'amount_paid': user.get('final_amount', 0), 'coupon_used': user.get('coupon_code', ''),
                 'order_id': data.get('razorpay_order_id'), 'payment_id': data.get('razorpay_payment_id'), 
                 'transaction_id': data.get('razorpay_payment_id'),
-                'payment_method': payment['method'], 'status': 'SUCCESS',
+                'payment_method': payment['method'], 'upi_app': get_upi_app(payment.get('vpa', '')), 'vpa': payment.get('vpa', 'N/A'),
+                'status': 'SUCCESS',
                 'date': datetime.now().strftime('%d %b %Y'), 'time': datetime.now().strftime('%I:%M %p'),
                 'receipt': f"SFZ{str(user_id)[-6:]}"
             }
@@ -397,40 +394,164 @@ def download_receipt(user_id):
     if not user: return redirect(url_for('main.index'))
     payment = db.payments.find_one({'user_id': user_id})
 
-    pdf = FPDF()
+    receipt_no = f"SFZ{str(user['_id'])[-6:]}"
+    invoice_no = f"INV-2024-{str(user['_id'])[-4:]}"
+
+    # QR Code Generation
+    qr = qrcode.QRCode(version=1, box_size=4, border=1)
+    qr.add_data(f"Receipt No: {receipt_no}, Name: {user.get('name')}, Amount: Rs. {user.get('final_amount', 0)}")
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    img_byte_arr = io.BytesIO()
+    qr_img.save(img_byte_arr, format='PNG')
+    img_byte_arr.seek(0)
+
+    pdf = FPDF(orientation='P', unit='mm', format='A4')
     pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    # Header Background
     pdf.set_fill_color(17, 17, 17)
-    pdf.rect(0, 0, 210, 297, 'F')
-    
-    pdf.set_text_color(255, 215, 0); pdf.set_font("Arial", 'B', 28); pdf.cell(0, 15, "SFZ", 0, 1, 'C')
-    pdf.set_text_color(255, 255, 255); pdf.set_font("Arial", 'B', 14); pdf.cell(0, 10, "Spartan Fitness Zone", 0, 1, 'C')
-    pdf.set_text_color(150, 150, 150); pdf.set_font("Arial", '', 10)
-    pdf.cell(0, 5, "E9 - First Floor, Sharma Colony, Nandpuri, Jaipur | Ph: 8440088703", 0, 1, 'C')
-    pdf.ln(10); pdf.set_text_color(255, 215, 0); pdf.set_font("Arial", 'B', 16); pdf.cell(0, 10, "PAYMENT RECEIPT", 0, 1, 'C'); pdf.ln(5)
-    
-    pdf.set_font("Arial", '', 12)
-    data = [
-        ("Member Name", user.get('name', '')), ("Registration ID", str(user['_id'])[-8:]),
-        ("Membership Plan", user.get('plan', '')), ("Original Amount", f"Rs. {user.get('amount', 0)}"),
-        ("Discount Applied", f"Rs. {user.get('discount', 0)} ({user.get('coupon_code', 'N/A')})"),
-        ("Amount Paid", f"Rs. {user.get('final_amount', 0)}"),
-        ("Payment Method", payment.get('payment_method', 'N/A').upper() if payment else 'CASH'),
-        ("Transaction ID", payment.get('transaction_id', 'N/A') if payment else 'N/A'),
-        ("Order ID", payment.get('order_id', 'N/A') if payment else 'N/A'),
-        ("Payment ID", payment.get('payment_id', 'N/A') if payment else 'N/A'),
-        ("Payment Date", payment.get('date', datetime.now().strftime('%d %b %Y')) if payment else datetime.now().strftime('%d %b %Y')),
-        ("Payment Time", payment.get('time', datetime.now().strftime('%I:%M %p')) if payment else datetime.now().strftime('%I:%M %p')),
-        ("Payment Status", "SUCCESS" if payment else "PENDING"),
-        ("Expiry Date", user.get('expiry_date').strftime('%d %b %Y') if user.get('expiry_date') else 'N/A')
-    ]
-    for label, value in data:
-        pdf.set_text_color(150, 150, 150); pdf.cell(60, 10, label, 0, 0)
-        pdf.set_text_color(255, 255, 255); pdf.cell(0, 10, ": " + str(value), 0, 1)
-        
-    pdf.ln(15); pdf.set_text_color(255, 215, 0); pdf.set_font("Arial", 'B', 12)
-    pdf.cell(0, 10, "Thank You for choosing Spartan Fitness Zone!", 0, 1, 'C')
-    
-    buffer = io.BytesIO(); buffer.write(pdf.output()); buffer.seek(0)
+    pdf.rect(0, 0, 210, 40, 'F')
+
+    # Logo Load from URL
+    logo_url = "https://z-cdn-media.chatglm.cn/files/66dfb45d-eb25-46d5-87a9-2f527f8758cf.jpeg?auth_key=1883997017-3faf8b3e4e594a43b060a3bc21b1c3e2-0-799070c3fe3307a0f0a85b395b3404df"
+    try:
+        with urllib.request.urlopen(logo_url) as response:
+            logo_data = io.BytesIO(response.read())
+            pdf.image(logo_data, x=10, y=8, w=20)
+    except:
+        pass
+
+    # Gym Details
+    pdf.set_xy(35, 10)
+    pdf.set_text_color(255, 215, 0)
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(0, 8, config.GYM_NAME, 0, 1)
+
+    pdf.set_xy(35, 18)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Arial", '', 8)
+    pdf.multi_cell(80, 4, f"{config.GYM_ADDRESS}\nPhone: {config.GYM_PHONE} | Email: {config.GYM_EMAIL}\nWebsite: {config.GYM_WEBSITE}")
+
+    # Right side: Receipt Info
+    pdf.set_xy(130, 10)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Arial", 'B', 10)
+    pdf.cell(70, 5, "PAYMENT RECEIPT", 0, 1, 'R')
+    pdf.set_font("Arial", '', 8)
+    pdf.set_xy(130, 16)
+    pdf.cell(70, 4, f"Receipt No: {receipt_no}", 0, 1, 'R')
+    pdf.set_xy(130, 20)
+    pdf.cell(70, 4, f"Invoice No: {invoice_no}", 0, 1, 'R')
+    pdf.set_xy(130, 24)
+    pdf.cell(70, 4, f"Date: {datetime.now().strftime('%d %b %Y %I:%M %p')}", 0, 1, 'R')
+    pdf.set_xy(130, 28)
+    pdf.set_text_color(46, 204, 113)
+    pdf.set_font("Arial", 'B', 8)
+    pdf.cell(70, 4, "Status: SUCCESS", 0, 1, 'R')
+
+    pdf.ln(10)
+
+    # Member & Membership Details
+    pdf.set_text_color(17, 17, 17)
+    pdf.set_font("Arial", 'B', 10)
+    pdf.set_fill_color(255, 215, 0)
+    pdf.cell(95, 7, " MEMBER DETAILS", 1, 0, 'L', True)
+    pdf.cell(95, 7, " MEMBERSHIP DETAILS", 1, 1, 'L', True)
+
+    pdf.set_font("Arial", '', 9)
+    pdf.set_fill_color(245, 245, 245)
+    pdf.cell(40, 6, " Member Name:", 1, 0, 'L', True)
+    pdf.cell(55, 6, f" {user.get('name', '')}", 1, 0, 'L')
+    pdf.cell(40, 6, " Plan Name:", 1, 0, 'L', True)
+    pdf.cell(55, 6, f" {user.get('plan', '')}", 1, 1, 'L')
+
+    pdf.cell(40, 6, " Mobile:", 1, 0, 'L', True)
+    pdf.cell(55, 6, f" {user.get('phone', '')}", 1, 0, 'L')
+    pdf.cell(40, 6, " Start Date:", 1, 0, 'L', True)
+    pdf.cell(55, 6, f" {user.get('join_date').strftime('%d %b %Y')}", 1, 1, 'L')
+
+    pdf.cell(40, 6, " Email:", 1, 0, 'L', True)
+    pdf.cell(55, 6, f" {user.get('email', 'N/A')}", 1, 0, 'L')
+    pdf.cell(40, 6, " Expiry Date:", 1, 0, 'L', True)
+    pdf.cell(55, 6, f" {user.get('expiry_date').strftime('%d %b %Y')}", 1, 1, 'L')
+
+    pdf.cell(40, 6, " Member ID:", 1, 0, 'L', True)
+    pdf.cell(55, 6, f" {str(user['_id'])[-8:]}", 1, 0, 'L')
+    pdf.cell(40, 6, " Duration:", 1, 0, 'L', True)
+    pdf.cell(55, 6, f" {user.get('plan', '')}", 1, 1, 'L')
+
+    pdf.ln(5)
+
+    # Payment Details
+    pdf.set_font("Arial", 'B', 10)
+    pdf.set_fill_color(255, 215, 0)
+    pdf.cell(0, 7, " PAYMENT DETAILS", 1, 1, 'L', True)
+
+    pdf.set_font("Arial", '', 9)
+    pdf.set_fill_color(245, 245, 245)
+    pdf.cell(50, 6, " Payment Gateway:", 1, 0, 'L', True)
+    pdf.cell(40, 6, " Razorpay", 1, 0, 'L')
+    pdf.cell(40, 6, " Payment Method:", 1, 0, 'L', True)
+    pdf.cell(60, 6, f" {payment.get('payment_method', 'N/A').upper()}", 1, 1, 'L')
+
+    pdf.cell(50, 6, " UPI App Used:", 1, 0, 'L', True)
+    pdf.cell(40, 6, f" {payment.get('upi_app', 'N/A')}", 1, 0, 'L')
+    pdf.cell(40, 6, " Transaction ID:", 1, 0, 'L', True)
+    pdf.cell(60, 6, f" {payment.get('transaction_id', 'N/A')}", 1, 1, 'L')
+
+    pdf.cell(50, 6, " Razorpay Order ID:", 1, 0, 'L', True)
+    pdf.cell(140, 6, f" {payment.get('order_id', 'N/A')}", 1, 1, 'L')
+
+    pdf.cell(50, 6, " Razorpay Payment ID:", 1, 0, 'L', True)
+    pdf.cell(140, 6, f" {payment.get('payment_id', 'N/A')}", 1, 1, 'L')
+
+    pdf.cell(50, 6, " Payment Date/Time:", 1, 0, 'L', True)
+    pdf.cell(140, 6, f" {payment.get('date', '')} {payment.get('time', '')}", 1, 1, 'L')
+
+    pdf.ln(5)
+
+    # Summary
+    pdf.set_font("Arial", 'B', 10)
+    pdf.set_fill_color(255, 215, 0)
+    pdf.cell(0, 7, " PAYMENT SUMMARY", 1, 1, 'L', True)
+
+    pdf.set_font("Arial", '', 10)
+    pdf.set_fill_color(245, 245, 245)
+    pdf.cell(120, 7, " Membership Fee", 1, 0, 'R', True)
+    pdf.cell(70, 7, f" Rs. {user.get('amount', 0)}", 1, 1, 'L')
+
+    pdf.cell(120, 7, " Discount", 1, 0, 'R', True)
+    pdf.cell(70, 7, f" - Rs. {user.get('discount', 0)}", 1, 1, 'L')
+
+    pdf.cell(120, 7, " Taxes", 1, 0, 'R', True)
+    pdf.cell(70, 7, " Rs. 0", 1, 1, 'L')
+
+    pdf.set_font("Arial", 'B', 12)
+    pdf.set_fill_color(17, 17, 17)
+    pdf.set_text_color(255, 215, 0)
+    pdf.cell(120, 8, " TOTAL AMOUNT PAID", 1, 0, 'R', True)
+    pdf.cell(70, 8, f" Rs. {user.get('final_amount', 0)}", 1, 1, 'L', True)
+    pdf.set_text_color(17, 17, 17)
+
+    # QR Code Image
+    pdf.ln(5)
+    pdf.image(img_byte_arr, x=85, y=None, w=30)
+    pdf.set_font("Arial", '', 8)
+    pdf.set_text_color(100)
+    pdf.cell(0, 5, "Scan to verify receipt", 0, 1, 'C')
+
+    # Footer
+    pdf.ln(5)
+    pdf.set_y(-50)
+    pdf.set_text_color(100)
+    pdf.set_font("Arial", 'I', 8)
+    pdf.multi_cell(0, 5, "Thank you for choosing our gym.\nThis receipt confirms that your payment has been successfully received.\nThis is a system-generated receipt and does not require a signature.", 0, 'C')
+
+    buffer = io.BytesIO()
+    buffer.write(pdf.output())
+    buffer.seek(0)
     return send_file(buffer, as_attachment=True, download_name=f"SFZ_Receipt_{user['name']}.pdf", mimetype='application/pdf')
 
 @main_bp.route('/services')
@@ -460,4 +581,3 @@ def contact():
         flash('✅ Feedback bhej diya! Thank you.', 'success')
         return redirect(url_for('main.contact'))
     return render_template('contact.html')
-
