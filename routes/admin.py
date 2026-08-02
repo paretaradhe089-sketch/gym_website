@@ -137,6 +137,16 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, Response
 from models.database import get_db
 from config import ADMIN_PASSWORD
@@ -215,8 +225,18 @@ def add_coupon():
 @admin_required
 def transactions():
     db = get_db()
-    payments = list(db.payments.find().sort('date', -1))
-    return render_template('admin_transactions.html', payments=payments)
+    q = request.args.get('q', '')
+    query = {}
+    if q:
+        query = {
+            '$or': [
+                {'name': {'$regex': q, '$options': 'i'}},
+                {'receipt': {'$regex': q, '$options': 'i'}},
+                {'transaction_id': {'$regex': q, '$options': 'i'}}
+            ]
+        }
+    payments = list(db.payments.find(query).sort('date', -1))
+    return render_template('admin_transactions.html', payments=payments, q=q)
 
 @admin_bp.route('/admin/export_csv')
 @admin_required
