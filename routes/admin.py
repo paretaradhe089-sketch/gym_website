@@ -147,17 +147,16 @@
 
 
 
-
-
-
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, Response
 from models.database import get_db
 from config import ADMIN_PASSWORD
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from bson import ObjectId
 import csv
 import io
+# Importing send_admin_email from main.py
+from routes.main import send_admin_email
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -168,6 +167,54 @@ def admin_required(f):
             return redirect(url_for('admin.admin_login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# === APSCHEDULER FUNCTION (Runs Daily at 9 AM) ===
+def check_expired_users():
+    db = get_db()
+    today = datetime.now()
+    today = today.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    users = db.users.find({"status": "Active"})
+    for user in users:
+        expiry = user.get('expiry_date')
+        if not expiry: continue
+            
+        if isinstance(expiry, str):
+            try: expiry = datetime.strptime(expiry, '%d-%m-%Y')
+            except: continue
+                
+        if expiry <= today:
+            existing_notif = db.notifications.find_one({
+                'phone': user['phone'], 
+                'status': 'pending'
+            })
+            
+            # Agar notification pehle se pending nahi hai, tabhi naya banao aur email bhejo
+            if not existing_notif:
+                db.notifications.insert_one({
+                    'name': user.get('name', ''),
+                    'phone': user.get('phone', ''),
+                    'shift': user.get('batch', 'N/A'), # Shift (Morning/Evening)
+                    'type': 'EXPIRED',
+                    'expiry_date': expiry,
+                    'status': 'pending',
+                    'created_at': datetime.now()
+                })
+                
+                # === ADMIN KO GMAIL PAR EMAIL BHEJNA ===
+                subject = "⚠️ Membership Expired!"
+                body = f"""
+                <h3>User Membership Expired!</h3>
+                <p>Ek user ka gym membership expire ho gaya hai. Please contact karke renew karwayein.</p>
+                <table style="border: 1px solid #ddd; padding: 10px;">
+                    <tr><td><b>Name:</b></td><td>{user.get('name', '')}</td></tr>
+                    <tr><td><b>Phone:</b></td><td>{user.get('phone', '')}</td></tr>
+                    <tr><td><b>Shift:</b></td><td>{user.get('batch', 'N/A')}</td></tr>
+                    <tr><td><b>Expiry Date:</b></td><td>{expiry.strftime('%d %b %Y')}</td></tr>
+                </table>
+                """
+                send_admin_email(subject, body)
+                print(f"⚠️ EXPIRED Email sent to admin for {user['name']}")
 
 @admin_bp.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -187,13 +234,28 @@ def admin_logout():
 @admin_required
 def dashboard():
     db = get_db()
+    
+    # Also run check manually when admin opens dashboard (fallback for Render sleep)
+    check_expired_users()
+    
     active_users = db.users.count_documents({'status': 'Active'})
     pending_users = db.users.count_documents({'status': 'Pending'})
     total_users = db.users.count_documents({})
     today = datetime.now().strftime('%d %b %Y')
     today_regs = db.users.count_documents({'join_date': {'$gte': datetime.now().replace(hour=0, minute=0, second=0)}})
     today_revenue = sum(p.get('amount_paid', 0) for p in db.payments.find({'date': today}))
-    monthly_revenue = sum(p.get('amount_paid', 0) for p in db.payments.find({'date': {'$regex': f"^{datetime.now().strftime('%b %Y')}"}}))
+    
+    # Monthly Revenue Calculation
+    monthly_rev_data = {}
+    for p in db.payments.find({'status': 'SUCCESS'}):
+        try:
+            dt = datetime.strptime(p['date'], '%d %b %Y')
+            key = dt.strftime('%Y-%m')
+            monthly_rev_data[key] = monthly_rev_data.get(key, 0) + p.get('amount_paid', 0)
+        except:
+            pass
+    sorted_monthly_rev = sorted(monthly_rev_data.items(), reverse=True)[:6] # Last 6 months
+    
     pending_payments = db.users.count_documents({'payment_method': 'Online', 'status': 'Pending'})
     completed_payments = db.payments.count_documents({'status': 'SUCCESS'})
     
@@ -201,11 +263,44 @@ def dashboard():
     payments = list(db.payments.find().sort('date', -1).limit(5))
     feedbacks = list(db.feedback.find().sort('created_at', -1))
     coupons = list(db.coupons.find())
+    
+    # Fetch Pending Notifications
+    notifications = list(db.notifications.find({'status': 'pending'}).sort('created_at', -1))
 
     return render_template('admin_dashboard.html', active_users=active_users, pending_users=pending_users, total_users=total_users,
-                           today_regs=today_regs, today_revenue=today_revenue, monthly_revenue=monthly_revenue,
+                           today_regs=today_regs, today_revenue=today_revenue,
                            pending_payments=pending_payments, completed_payments=completed_payments,
-                           users=users, feedbacks=feedbacks, payments=payments, coupons=coupons)
+                           users=users, feedbacks=feedbacks, payments=payments, coupons=coupons,
+                           notifications=notifications, monthly_rev=sorted_monthly_rev)
+
+# NOTIFICATION ACTIONS
+@admin_bp.route('/admin/dismiss_notif/<notif_id>')
+@admin_required
+def dismiss_notif(notif_id):
+    db = get_db()
+    db.notifications.update_one({'_id': ObjectId(notif_id)}, {'$set': {'status': 'dismissed'}})
+    flash('✅ Notification dismissed.', 'success')
+    return redirect(url_for('admin.dashboard') + '#alerts')
+
+@admin_bp.route('/admin/payment_received_notif/<notif_id>')
+@admin_required
+def payment_received_notif(notif_id):
+    db = get_db()
+    notif = db.notifications.find_one({'_id': ObjectId(notif_id)})
+    if notif:
+        user = db.users.find_one({'phone': notif['phone']})
+        if user:
+            # Extend Expiry by 1 Month
+            current_expiry = user.get('expiry_date', datetime.now())
+            if isinstance(current_expiry, str):
+                current_expiry = datetime.now()
+            new_expiry = current_expiry.replace(month=current_expiry.month % 12 + 1, year=current_expiry.year + (1 if current_expiry.month == 12 else 0))
+            db.users.update_one({'_id': user['_id']}, {'$set': {'expiry_date': new_expiry, 'status': 'Active'}})
+            
+            # Dismiss Notification
+            db.notifications.update_one({'_id': ObjectId(notif_id)}, {'$set': {'status': 'resolved'}})
+            flash('✅ Membership renewed for 1 month!', 'success')
+    return redirect(url_for('admin.dashboard') + '#alerts')
 
 @admin_bp.route('/admin/add_coupon', methods=['POST'])
 @admin_required
