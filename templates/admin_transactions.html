@@ -13,7 +13,6 @@
     <h1 style="font-family:'Oswald';">💳 Payment Transactions</h1>
     <div>
         <a href="{{ url_for('admin.dashboard') }}" style="font-size:14px; margin-right:15px;">Dashboard</a>
-        <!-- Direct Link Use Kiya Hai Taaki Error Na Aaye -->
         <a href="/admin/export_csv" class="btn-admin">⬇️ Export CSV</a>
     </div>
 </div>
@@ -21,49 +20,51 @@
 <div class="section">
     <div class="admin-card">
         <h2>Online Payment History</h2>
+        
+        <!-- Search Form -->
+        <form method="GET" action="{{ url_for('admin.transactions') }}" style="margin-bottom: 20px; display: flex; gap: 10px;">
+            <input type="text" name="q" placeholder="Search by Name, Receipt No, or Transaction ID..." value="{{ q }}" style="width: 70%; margin: 0;">
+            <button type="submit" class="btn-sm btn-edit" style="padding: 12px 20px;">Search</button>
+            {% if q %}
+            <a href="{{ url_for('admin.transactions') }}" class="btn-sm btn-del" style="padding: 12px 20px; text-decoration: none;">Clear</a>
+            {% endif %}
+        </form>
+
         <table>
             <thead>
                 <tr>
+                    <th>Receipt No</th>
                     <th>Member Name</th>
                     <th>Phone</th>
-                    <th>Email</th>
                     <th>Plan</th>
-                    <th>Original Amt</th>
-                    <th>Discount</th>
-                    <th>Paid Amt</th>
-                    <th>Coupon</th>
-                    <th>Transaction ID</th>
-                    <th>Order ID</th>
+                    <th>Amount</th>
                     <th>Method</th>
+                    <th>UPI App</th>
+                    <th>Transaction ID</th>
                     <th>Status</th>
                     <th>Date</th>
-                    <th>Time</th>
-                    <th>Receipt</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 {% for p in payments %}
                 <tr>
+                    <td>{{ p.receipt }}</td>
                     <td>{{ p.name }}</td>
                     <td>{{ p.phone }}</td>
-                    <td>{{ p.email }}</td>
                     <td>{{ p.plan }}</td>
-                    <td>₹{{ p.original_amount }}</td>
-                    <td>₹{{ p.discount }}</td>
                     <td>₹{{ p.amount_paid }}</td>
-                    <td>{{ p.coupon_used or 'N/A' }}</td>
-                    <td style="font-size:10px;">{{ p.transaction_id }}</td>
-                    <td style="font-size:10px;">{{ p.order_id }}</td>
                     <td>{{ p.payment_method|upper }}</td>
+                    <td>{{ p.upi_app or 'N/A' }}</td>
+                    <td style="font-size:10px;">{{ p.transaction_id }}</td>
                     <td style="color: #2ecc71; font-weight:bold;">{{ p.status }}</td>
                     <td>{{ p.date }}</td>
-                    <td>{{ p.time }}</td>
                     <td>
                         <a href="{{ url_for('main.download_receipt', user_id=p.user_id) }}" class="btn-sm btn-edit" target="_blank">PDF</a>
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="15" style="text-align:center; color:#888;">No online transactions yet.</td></tr>
+                <tr><td colspan="11" style="text-align:center; color:#888;">No transactions found.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
