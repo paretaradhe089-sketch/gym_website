@@ -41,6 +41,8 @@ def inject_gym_info():
         gym_instagram=GYM_INSTAGRAM,
         razorpay_key_id=RAZORPAY_KEY_ID
     )
+    from routes.admin import start_scheduler
+    start_scheduler(app)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
