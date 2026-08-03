@@ -779,12 +779,17 @@ import urllib.request
 import qrcode
 import config
 import razorpay
-import threading # Naya import for background task
+import threading 
+import socket # Naya import for IPv4 fix
 
 main_bp = Blueprint('main', __name__)
 razorpay_client = razorpay.Client(auth=(config.RAZORPAY_KEY_ID, config.RAZORPAY_KEY_SECRET))
 
-# === EMAIL FUNCTION ===
+# === EMAIL FUNCTION WITH IPv4 FIX ===
+class IPv4_SMTP(smtplib.SMTP):
+    """Force IPv4 to avoid Render's IPv6 network unreachable error"""
+    address_family = socket.AF_INET
+
 def send_admin_email(subject, body):
     if not config.MAIL_EMAIL or not config.MAIL_PASSWORD:
         print("--- DEBUG: Email/Password missing ---")
@@ -798,8 +803,9 @@ def send_admin_email(subject, body):
     msg.attach(part)
     
     try:
-        print("--- DEBUG: Connecting to Gmail... ---")
-        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10) # 10 second timeout
+        print("--- DEBUG: Connecting to Gmail via IPv4... ---")
+        # Yahan smtplib.SMTP ki jagah IPv4_SMTP use kiya hai
+        server = IPv4_SMTP('smtp.gmail.com', 587, timeout=15) 
         server.starttls()
         server.login(config.MAIL_EMAIL, config.MAIL_PASSWORD)
         server.sendmail(config.MAIL_EMAIL, config.MAIL_EMAIL, msg.as_string())
