@@ -19,11 +19,19 @@
 
 
 
+
+
+
+
+
+
+
+
 from flask import Flask, render_template, request
 from config import SECRET_KEY, GYM_PHONE, GYM_WHATSAPP, GYM_INSTAGRAM, RAZORPAY_KEY_ID
 from models.database import init_db
 from routes.main import main_bp
-from routes.admin import admin_bp
+from routes.admin import admin_bp, start_scheduler
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = SECRET_KEY
@@ -41,12 +49,12 @@ def inject_gym_info():
         gym_instagram=GYM_INSTAGRAM,
         razorpay_key_id=RAZORPAY_KEY_ID
     )
-    from routes.admin import start_scheduler
-    start_scheduler(app)
+
+# Scheduler start
+start_scheduler(app)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-
 
 
 # ─── Turbo Speed Optimization ───────────────────────────────────
