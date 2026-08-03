@@ -1,1 +1,36 @@
-
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7f6; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-top: 5px solid #e74c3c; }
+        h2 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border: 1px solid #ddd; }
+        th { background: #f8f9fa; color: #333; }
+        .footer { margin-top: 20px; font-size: 12px; color: #777; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>⚠️ Membership Expiry Alert</h2>
+        <p>The following members have expired today. Please contact them for renewal.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th><th>Phone</th><th>Shift</th><th>Plan</th><th>Join Date</th><th>Expiry Date</th><th>Amount Paid</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in members %}
+                <tr>
+                    <td>{{ m.name }}</td><td>{{ m.phone }}</td><td>{{ m.shift }}</td><td>{{ m.membership_plan }}</td>
+                    <td>{{ m.joining_date.strftime('%d %b %Y') }}</td><td>{{ m.expiry_date.strftime('%d %b %Y') }}</td><td>₹{{ m.amount_paid }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="footer">This is an automated email sent by the Gym Management System.</div>
+    </div>
+</body>
+</html>
