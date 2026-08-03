@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: gym-system-web
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: SCHEDULER_SECRET
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: OWNER_EMAIL
+        sync: false
+
+  - type: cron
+    name: gym-scheduler-trigger
+    env: python
+    schedule: "0 4 * * *" 
+    buildCommand: pip install requests
+    startCommand: python -c "import requests; requests.post('https://your-live-url.onrender.com/api/scheduler/run', headers={'X-Scheduler-Secret': 'my_cron_secret_123'})"
