@@ -782,27 +782,24 @@ import requests  # Web3Forms API ke liye
 main_bp = Blueprint('main', __name__)
 razorpay_client = razorpay.Client(auth=(config.RAZORPAY_KEY_ID, config.RAZORPAY_KEY_SECRET))
 
-# === EMAIL FUNCTION (Web3Forms API - Render Free Tier Compatible) ===
+# === EMAIL FUNCTION (FormSubmit API - 100% Free & No Key Needed) ===
 def send_admin_email(subject, body):
-    if not config.WEB3FORMS_KEY or config.WEB3FORMS_KEY == 'default-key':
-        print("--- DEBUG: Web3Forms Key missing ---")
+    if not config.MAIL_EMAIL:
+        print("--- DEBUG: Mail Email missing ---")
         return False
         
-    url = "https://api.web3forms.com/submit"
+    url = f"https://formsubmit.co/ajax/{config.MAIL_EMAIL}"
     payload = {
-        "access_key": config.WEB3FORMS_KEY,
         "subject": subject,
         "from_name": "Spartan Fitness Zone",
-        "to": config.MAIL_EMAIL, # Ye aapki Gmail hai jisme email aayegi
-        "replyto": "no-reply@spartangym.com",
-        "html": body # 'html' use kiya hai taaki table aur colors properly aaye
+        "Message": body
     }
     
     try:
-        print("--- DEBUG: Sending email via Web3Forms API... ---")
+        print("--- DEBUG: Sending email via FormSubmit API... ---")
         response = requests.post(url, data=payload, timeout=10)
         if response.status_code == 200:
-            print("--- DEBUG: Email sent successfully via API! ---")
+            print("--- DEBUG: Email sent successfully via FormSubmit! ---")
             return True
         else:
             print(f"--- DEBUG: API Error: {response.text} ---")
@@ -1158,37 +1155,10 @@ def contact():
         db.feedback.insert_one({'name': name, 'email': request.form.get('email'), 'message': message, 'created_at': datetime.now()})
         
         # BACKGROUND EMAIL ALERT
-    #     send_email_async("💬 New Feedback Received!", f"<h3>New Feedback</h3><p><b>Name:</b> {name}<br><b>Email:</b> {request.form.get('email')}<br><b>Message:</b> {message}</p>")
+        send_email_async("💬 New Feedback Received!", f"<h3>New Feedback</h3><p><b>Name:</b> {name}<br><b>Email:</b> {request.form.get('email')}<br><b>Message:</b> {message}</p>")
         
-    #     flash('✅ Feedback bhej diya! Thank you.', 'success')
-    #     return redirect(url_for('main.contact'))
-    # return render_template('contact.html')
-
-
-
-
-    # === EMAIL FUNCTION (FormSubmit API - 100% Free & No Key Needed) ===
-def send_admin_email(subject, body):
-    if not config.MAIL_EMAIL:
-        print("--- DEBUG: Mail Email missing ---")
-        return False
-        
-    url = f"https://formsubmit.co/ajax/{config.MAIL_EMAIL}"
-    payload = {
-        "subject": subject,
-        "from_name": "Spartan Fitness Zone",
-        "Message": body
-    }
+        flash('✅ Feedback bhej diya! Thank you.', 'success')
+        return redirect(url_for('main.contact'))
     
-    try:
-        print("--- DEBUG: Sending email via FormSubmit API... ---")
-        response = requests.post(url, data=payload, timeout=10)
-        if response.status_code == 200:
-            print("--- DEBUG: Email sent successfully via FormSubmit! ---")
-            return True
-        else:
-            print(f"--- DEBUG: API Error: {response.text} ---")
-            return False
-    except Exception as e:
-        print(f"--- DEBUG: Request Error: {e} ---")
-        return False
+    # YE LINE MISSING THI JISKI WAJAH SE ERROR AA RAHA THA
+    return render_template('contact.html')
