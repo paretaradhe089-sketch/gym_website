@@ -779,15 +779,15 @@ import urllib.request
 import qrcode
 import config
 import razorpay
+import threading # Naya import for background task
 
 main_bp = Blueprint('main', __name__)
 razorpay_client = razorpay.Client(auth=(config.RAZORPAY_KEY_ID, config.RAZORPAY_KEY_SECRET))
 
-# === EMAIL FUNCTION WITH DEBUG LOGGING ===
+# === EMAIL FUNCTION ===
 def send_admin_email(subject, body):
-    print(f"--- DEBUG: Attempting to send email to {config.MAIL_EMAIL} ---")
     if not config.MAIL_EMAIL or not config.MAIL_PASSWORD:
-        print("--- DEBUG: FAILED - MAIL_EMAIL or MAIL_PASSWORD is missing in config! ---")
+        print("--- DEBUG: Email/Password missing ---")
         return False
         
     msg = MIMEMultipart('alternative')
@@ -798,19 +798,24 @@ def send_admin_email(subject, body):
     msg.attach(part)
     
     try:
-        print("--- DEBUG: Connecting to Gmail SMTP server... ---")
-        server = smtplib.SMTP('smtp.gmail.com', 587)
+        print("--- DEBUG: Connecting to Gmail... ---")
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10) # 10 second timeout
         server.starttls()
-        print("--- DEBUG: Logging in to Gmail... ---")
         server.login(config.MAIL_EMAIL, config.MAIL_PASSWORD)
-        print("--- DEBUG: Login Successful! Sending email... ---")
         server.sendmail(config.MAIL_EMAIL, config.MAIL_EMAIL, msg.as_string())
         server.quit()
-        print("--- DEBUG: SUCCESS! Email sent successfully. ---")
+        print("--- DEBUG: Email sent successfully! ---")
         return True
     except Exception as e:
-        print(f"--- DEBUG: FAILED! Email Error: {e} ---")
+        print(f"--- DEBUG: Email Error: {e} ---")
         return False
+
+# === BACKGROUND THREAD FUNCTION ===
+def send_email_async(subject, body):
+    """Email ko background mein bhejne ke liye, taaki website slow na ho"""
+    thread = threading.Thread(target=send_admin_email, args=(subject, body))
+    thread.daemon = True
+    thread.start()
 
 def add_months(source_date, months):
     new_month = source_date.month - 1 + months
@@ -875,8 +880,8 @@ def create_order():
     result = db.users.insert_one(user_data)
     user_id = str(result.inserted_id)
     
-    # ADMIN EMAIL ALERT
-    send_admin_email("🆕 New Online Registration Pending!", f"<h3>New User Registered (Online Pending)</h3><p><b>Name:</b> {user_data['name']}<br><b>Phone:</b> {user_data['phone']}<br><b>Plan:</b> {user_data['plan']}</p>")
+    # BACKGROUND EMAIL ALERT
+    send_email_async("🆕 New Online Registration Pending!", f"<h3>New User Registered (Online Pending)</h3><p><b>Name:</b> {user_data['name']}<br><b>Phone:</b> {user_data['phone']}<br><b>Plan:</b> {user_data['plan']}</p>")
     
     order = razorpay_client.order.create({
         'amount': amount, 'currency': 'INR', 'receipt': f'spz_rcpt_{user_id[-8:]}',
@@ -909,8 +914,8 @@ def register_cash():
     }
     db.users.insert_one(user_data)
     
-    # ADMIN EMAIL ALERT
-    send_admin_email("💰 New Cash Registration!", f"<h3>New User Registered (Cash)</h3><p><b>Name:</b> {name}<br><b>Phone:</b> {phone}<br><b>Plan:</b> {plan}<br><b>Amount:</b> ₹{amount}</p>")
+    # BACKGROUND EMAIL ALERT
+    send_email_async("💰 New Cash Registration!", f"<h3>New User Registered (Cash)</h3><p><b>Name:</b> {name}<br><b>Phone:</b> {phone}<br><b>Plan:</b> {plan}<br><b>Amount:</b> ₹{amount}</p>")
     
     flash('✅ Registration Successful! See you at the gym.', 'success')
     return redirect(url_for('main.index'))
@@ -949,8 +954,8 @@ def verify_payment():
             }
             db.payments.insert_one(transaction)
             
-            # ADMIN EMAIL ALERT
-            send_admin_email("✅ Payment Received!", f"<h3>Online Payment Successful</h3><p><b>Name:</b> {user.get('name')}<br><b>Amount:</b> ₹{user.get('final_amount')}<br><b>Plan:</b> {user.get('plan')}</p>")
+            # BACKGROUND EMAIL ALERT
+            send_email_async("✅ Payment Received!", f"<h3>Online Payment Successful</h3><p><b>Name:</b> {user.get('name')}<br><b>Amount:</b> ₹{user.get('final_amount')}<br><b>Plan:</b> {user.get('plan')}</p>")
             
             return jsonify({'status': 'success', 'user_id': user_id})
         else:
@@ -996,7 +1001,7 @@ def download_receipt(user_id):
 
     logo_url = "https://z-cdn-media.chatglm.cn/files/66dfb45d-eb25-46d5-87a9-2f527f8758cf.jpeg?auth_key=1883997017-3faf8b3e4e594a43b060a3bc21b1c3e2-0-799070c3fe3307a0f0a85b395b3404df"
     try:
-        with urllib.request.urlopen(logo_url) as response:
+        with urllib.request.urlopen(logo_url, timeout=5) as response:
             logo_data = io.BytesIO(response.read())
             pdf.image(logo_data, x=10, y=8, w=20)
     except:
@@ -1151,8 +1156,8 @@ def contact():
             return redirect(url_for('main.contact'))
         db.feedback.insert_one({'name': name, 'email': request.form.get('email'), 'message': message, 'created_at': datetime.now()})
         
-        # ADMIN EMAIL ALERT
-        send_admin_email("💬 New Feedback Received!", f"<h3>New Feedback</h3><p><b>Name:</b> {name}<br><b>Email:</b> {request.form.get('email')}<br><b>Message:</b> {message}</p>")
+        # BACKGROUND EMAIL ALERT
+        send_email_async("💬 New Feedback Received!", f"<h3>New Feedback</h3><p><b>Name:</b> {name}<br><b>Email:</b> {request.form.get('email')}<br><b>Message:</b> {message}</p>")
         
         flash('✅ Feedback bhej diya! Thank you.', 'success')
         return redirect(url_for('main.contact'))
