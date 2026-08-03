@@ -1158,8 +1158,37 @@ def contact():
         db.feedback.insert_one({'name': name, 'email': request.form.get('email'), 'message': message, 'created_at': datetime.now()})
         
         # BACKGROUND EMAIL ALERT
-        send_email_async("💬 New Feedback Received!", f"<h3>New Feedback</h3><p><b>Name:</b> {name}<br><b>Email:</b> {request.form.get('email')}<br><b>Message:</b> {message}</p>")
+    #     send_email_async("💬 New Feedback Received!", f"<h3>New Feedback</h3><p><b>Name:</b> {name}<br><b>Email:</b> {request.form.get('email')}<br><b>Message:</b> {message}</p>")
         
-        flash('✅ Feedback bhej diya! Thank you.', 'success')
-        return redirect(url_for('main.contact'))
-    return render_template('contact.html')
+    #     flash('✅ Feedback bhej diya! Thank you.', 'success')
+    #     return redirect(url_for('main.contact'))
+    # return render_template('contact.html')
+
+
+
+
+    # === EMAIL FUNCTION (FormSubmit API - 100% Free & No Key Needed) ===
+def send_admin_email(subject, body):
+    if not config.MAIL_EMAIL:
+        print("--- DEBUG: Mail Email missing ---")
+        return False
+        
+    url = f"https://formsubmit.co/ajax/{config.MAIL_EMAIL}"
+    payload = {
+        "subject": subject,
+        "from_name": "Spartan Fitness Zone",
+        "Message": body
+    }
+    
+    try:
+        print("--- DEBUG: Sending email via FormSubmit API... ---")
+        response = requests.post(url, data=payload, timeout=10)
+        if response.status_code == 200:
+            print("--- DEBUG: Email sent successfully via FormSubmit! ---")
+            return True
+        else:
+            print(f"--- DEBUG: API Error: {response.text} ---")
+            return False
+    except Exception as e:
+        print(f"--- DEBUG: Request Error: {e} ---")
+        return False

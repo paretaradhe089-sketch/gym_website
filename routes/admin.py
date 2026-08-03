@@ -325,24 +325,21 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# === EMAIL FUNCTION (Web3Forms API) ===
+# === EMAIL FUNCTION (FormSubmit API - No Key Needed) ===
 def send_admin_email(subject, body):
-    if not WEB3FORMS_KEY or WEB3FORMS_KEY == 'default-key':
-        print("--- DEBUG: Web3Forms Key missing ---")
+    if not MAIL_EMAIL:
+        print("--- DEBUG: Mail Email missing ---")
         return False
         
-    url = "https://api.web3forms.com/submit"
+    url = f"https://formsubmit.co/ajax/{MAIL_EMAIL}"
     payload = {
-        "access_key": WEB3FORMS_KEY,
         "subject": subject,
         "from_name": "Spartan Fitness Zone",
-        "to": MAIL_EMAIL, # Ye aapki Gmail hai jisme email aayegi
-        "replyto": "no-reply@spartangym.com",
-        "html": body
+        "Message": body
     }
     
     try:
-        print("--- DEBUG: Sending Expiry email via API... ---")
+        print("--- DEBUG: Sending Expiry email via FormSubmit... ---")
         response = requests.post(url, data=payload, timeout=10)
         if response.status_code == 200:
             print("--- DEBUG: Expiry Email sent successfully! ---")
