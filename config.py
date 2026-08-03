@@ -52,4 +52,4 @@ GYM_EMAIL = "spartanzfitness@gmail.com"
 GYM_WEBSITE = "https://gym-website-gk7s.onrender.com"
 GYM_WHATSAPP = "https://wa.me/918440088703"
 GYM_INSTAGRAM = "https://www.instagram.com/sfz_jaipur?igsh=MTRvZnljMndzdDNyag=="
-WEB3FORMS_KEY = os.environ.get('WEB3FORMS_KEY', 'default-key')
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')

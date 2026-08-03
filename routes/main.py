@@ -782,24 +782,30 @@ import requests  # Web3Forms API ke liye
 main_bp = Blueprint('main', __name__)
 razorpay_client = razorpay.Client(auth=(config.RAZORPAY_KEY_ID, config.RAZORPAY_KEY_SECRET))
 
-# === EMAIL FUNCTION (FormSubmit API - 100% Free & No Key Needed) ===
+
+# === EMAIL FUNCTION (Resend API - 100% Working on Render) ===
 def send_admin_email(subject, body):
-    if not config.MAIL_EMAIL:
-        print("--- DEBUG: Mail Email missing ---")
+    if not config.RESEND_API_KEY:
+        print("--- DEBUG: Resend API Key missing ---")
         return False
         
-    url = f"https://formsubmit.co/ajax/{config.MAIL_EMAIL}"
+    url = "https://api.resend.com/emails"
+    headers = {
+        "Authorization": f"Bearer {config.RESEND_API_KEY}",
+        "Content-Type": "application/json"
+    }
     payload = {
+        "from": "Spartan Fitness Zone <onboarding@resend.dev>",
+        "to": [config.MAIL_EMAIL], # Ye aapki Gmail hai jisme email aayegi
         "subject": subject,
-        "from_name": "Spartan Fitness Zone",
-        "Message": body
+        "html": body
     }
     
     try:
-        print("--- DEBUG: Sending email via FormSubmit API... ---")
-        response = requests.post(url, data=payload, timeout=10)
+        print("--- DEBUG: Sending email via Resend API... ---")
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
         if response.status_code == 200:
-            print("--- DEBUG: Email sent successfully via FormSubmit! ---")
+            print("--- DEBUG: Email sent successfully via Resend! ---")
             return True
         else:
             print(f"--- DEBUG: API Error: {response.text} ---")

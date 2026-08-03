@@ -326,21 +326,27 @@ def admin_required(f):
     return decorated_function
 
 # === EMAIL FUNCTION (FormSubmit API - No Key Needed) ===
+# === EMAIL FUNCTION (Resend API) ===
 def send_admin_email(subject, body):
-    if not MAIL_EMAIL:
-        print("--- DEBUG: Mail Email missing ---")
+    if not WEB3FORMS_KEY or WEB3FORMS_KEY == 'default-key':
+        print("--- DEBUG: Web3Forms Key missing ---")
         return False
         
-    url = f"https://formsubmit.co/ajax/{MAIL_EMAIL}"
+    url = "https://api.resend.com/emails"
+    headers = {
+        "Authorization": f"Bearer {RESEND_API_KEY}",
+        "Content-Type": "application/json"
+    }
     payload = {
+        "from": "Spartan Fitness Zone <onboarding@resend.dev>",
+        "to": [MAIL_EMAIL],
         "subject": subject,
-        "from_name": "Spartan Fitness Zone",
-        "Message": body
+        "html": body
     }
     
     try:
-        print("--- DEBUG: Sending Expiry email via FormSubmit... ---")
-        response = requests.post(url, data=payload, timeout=10)
+        print("--- DEBUG: Sending Expiry email via Resend... ---")
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
         if response.status_code == 200:
             print("--- DEBUG: Expiry Email sent successfully! ---")
             return True
