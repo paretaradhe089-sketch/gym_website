@@ -770,9 +770,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, jsonify
 from models.database import get_db
 from datetime import datetime
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from fpdf import FPDF
 import io
 import urllib.request
@@ -780,40 +777,38 @@ import qrcode
 import config
 import razorpay
 import threading 
-import socket # Naya import for IPv4 fix
+import requests  # Web3Forms API ke liye
 
 main_bp = Blueprint('main', __name__)
 razorpay_client = razorpay.Client(auth=(config.RAZORPAY_KEY_ID, config.RAZORPAY_KEY_SECRET))
 
-# === EMAIL FUNCTION WITH IPv4 FIX ===
-class IPv4_SMTP(smtplib.SMTP):
-    """Force IPv4 to avoid Render's IPv6 network unreachable error"""
-    address_family = socket.AF_INET
-
+# === EMAIL FUNCTION (Web3Forms API - Render Free Tier Compatible) ===
 def send_admin_email(subject, body):
-    if not config.MAIL_EMAIL or not config.MAIL_PASSWORD:
-        print("--- DEBUG: Email/Password missing ---")
+    if not config.WEB3FORMS_KEY or config.WEB3FORMS_KEY == 'default-key':
+        print("--- DEBUG: Web3Forms Key missing ---")
         return False
         
-    msg = MIMEMultipart('alternative')
-    msg['Subject'] = subject
-    msg['From'] = config.MAIL_EMAIL
-    msg['To'] = config.MAIL_EMAIL
-    part = MIMEText(body, 'html')
-    msg.attach(part)
+    url = "https://api.web3forms.com/submit"
+    payload = {
+        "access_key": config.WEB3FORMS_KEY,
+        "subject": subject,
+        "from_name": "Spartan Fitness Zone",
+        "to": config.MAIL_EMAIL, # Ye aapki Gmail hai jisme email aayegi
+        "replyto": "no-reply@spartangym.com",
+        "html": body # 'html' use kiya hai taaki table aur colors properly aaye
+    }
     
     try:
-        print("--- DEBUG: Connecting to Gmail via IPv4... ---")
-        # Yahan smtplib.SMTP ki jagah IPv4_SMTP use kiya hai
-        server = IPv4_SMTP('smtp.gmail.com', 587, timeout=15) 
-        server.starttls()
-        server.login(config.MAIL_EMAIL, config.MAIL_PASSWORD)
-        server.sendmail(config.MAIL_EMAIL, config.MAIL_EMAIL, msg.as_string())
-        server.quit()
-        print("--- DEBUG: Email sent successfully! ---")
-        return True
+        print("--- DEBUG: Sending email via Web3Forms API... ---")
+        response = requests.post(url, data=payload, timeout=10)
+        if response.status_code == 200:
+            print("--- DEBUG: Email sent successfully via API! ---")
+            return True
+        else:
+            print(f"--- DEBUG: API Error: {response.text} ---")
+            return False
     except Exception as e:
-        print(f"--- DEBUG: Email Error: {e} ---")
+        print(f"--- DEBUG: Request Error: {e} ---")
         return False
 
 # === BACKGROUND THREAD FUNCTION ===
