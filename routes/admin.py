@@ -1,32 +1,13 @@
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, Response
 # from models.database import get_db
-# from config import ADMIN_PASSWORD, MAIL_EMAIL, MAIL_PASSWORD
+# from config import ADMIN_PASSWORD, MAIL_EMAIL, WEB3FORMS_KEY
 # from datetime import datetime, timedelta
 # from functools import wraps
 # from bson import ObjectId
 # import csv
 # import io
-# import smtplib
-# from email.mime.text import MIMEText
-# from email.mime.multipart import MIMEMultipart
+# import requests
 # import pytz
 # from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -40,24 +21,36 @@
 #         return f(*args, **kwargs)
 #     return decorated_function
 
-# # === EMAIL FUNCTION (Directly defined here to avoid import errors) ===
+# # === EMAIL FUNCTION (FormSubmit API - No Key Needed) ===
+# # === EMAIL FUNCTION (Resend API) ===
 # def send_admin_email(subject, body):
-#     if not MAIL_EMAIL or not MAIL_PASSWORD: return False
-#     msg = MIMEMultipart('alternative')
-#     msg['Subject'] = subject
-#     msg['From'] = MAIL_EMAIL
-#     msg['To'] = MAIL_EMAIL
-#     part = MIMEText(body, 'html')
-#     msg.attach(part)
+#     if not WEB3FORMS_KEY or WEB3FORMS_KEY == 'default-key':
+#         print("--- DEBUG: Web3Forms Key missing ---")
+#         return False
+        
+#     url = "https://api.resend.com/emails"
+#     headers = {
+#         "Authorization": f"Bearer {RESEND_API_KEY}",
+#         "Content-Type": "application/json"
+#     }
+#     payload = {
+#         "from": "Spartan Fitness Zone <onboarding@resend.dev>",
+#         "to": [MAIL_EMAIL],
+#         "subject": subject,
+#         "html": body
+#     }
+    
 #     try:
-#         server = smtplib.SMTP('smtp.gmail.com', 587)
-#         server.starttls()
-#         server.login(MAIL_EMAIL, MAIL_PASSWORD)
-#         server.sendmail(MAIL_EMAIL, MAIL_EMAIL, msg.as_string())
-#         server.quit()
-#         return True
+#         print("--- DEBUG: Sending Expiry email via Resend... ---")
+#         response = requests.post(url, json=payload, headers=headers, timeout=10)
+#         if response.status_code == 200:
+#             print("--- DEBUG: Expiry Email sent successfully! ---")
+#             return True
+#         else:
+#             print(f"--- DEBUG: API Error: {response.text} ---")
+#             return False
 #     except Exception as e:
-#         print(f"Email Error: {e}")
+#         print(f"--- DEBUG: Request Error: {e} ---")
 #         return False
 
 # # === APSCHEDULER FUNCTION (Runs Daily at 9 AM) ===
@@ -81,7 +74,6 @@
 #                 'status': 'pending'
 #             })
             
-#             # Agar notification pehle se pending nahi hai, tabhi naya banao aur email bhejo
 #             if not existing_notif:
 #                 db.notifications.insert_one({
 #                     'name': user.get('name', ''),
@@ -93,7 +85,6 @@
 #                     'created_at': datetime.now()
 #                 })
                 
-#                 # === ADMIN KO GMAIL PAR EMAIL BHEJNA ===
 #                 subject = "⚠️ Membership Expired!"
 #                 body = f"""
 #                 <h3>User Membership Expired!</h3>
@@ -303,9 +294,12 @@
 
 
 
+
+
+
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, Response
 from models.database import get_db
-from config import ADMIN_PASSWORD, MAIL_EMAIL, WEB3FORMS_KEY
+from config import ADMIN_PASSWORD, MAIL_EMAIL, RESEND_API_KEY
 from datetime import datetime, timedelta
 from functools import wraps
 from bson import ObjectId
@@ -325,11 +319,10 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# === EMAIL FUNCTION (FormSubmit API - No Key Needed) ===
 # === EMAIL FUNCTION (Resend API) ===
 def send_admin_email(subject, body):
-    if not WEB3FORMS_KEY or WEB3FORMS_KEY == 'default-key':
-        print("--- DEBUG: Web3Forms Key missing ---")
+    if not RESEND_API_KEY:
+        print("--- DEBUG: Resend API Key missing ---")
         return False
         
     url = "https://api.resend.com/emails"
